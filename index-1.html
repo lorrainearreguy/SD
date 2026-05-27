@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#2d3142"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="SD"/>
+<title>Sonho de Debutante</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --rose:#c9849a;--rose-dk:#a8607c;--rose-lt:#e8b4c4;--rose-bg:#f9f0f3;
+  --slate:#2d3142;--slate2:#3a3f57;
+  --ink:#1a1d2e;--muted:#8a7a82;
+  --border:rgba(201,132,154,0.2);--white:#fff;--bg:#f7f3f5;
+  --nav-h:64px;--alert:#e05555;--alert-bg:#fff0f0;
+  --green:#4caf7d;--green-bg:#f0fff6;
+}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;overflow:hidden}
+
+.pages{position:fixed;inset:0;bottom:var(--nav-h);overflow:hidden}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+.page.active{display:block}
+
+.topbar{position:sticky;top:0;z-index:40;background:var(--slate);padding:.85rem 1.2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(45,49,66,.4)}
+.brand{display:flex;align-items:center;gap:.5rem}
+.brand-icon{width:34px;height:34px;background:var(--rose);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:.85rem;font-weight:700;color:#fff;position:relative;flex-shrink:0}
+.brand-icon::after{content:'🦋';position:absolute;top:-8px;right:-6px;font-size:.65rem}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:var(--rose-lt);line-height:1.1}
+.brand-sub{font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em}
+.btn-add{background:var(--rose);color:#fff;padding:.5rem .95rem;border-radius:50px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 12px rgba(201,132,154,.35);white-space:nowrap}
+.btn-add:active{background:var(--rose-dk)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;padding:.7rem 1.1rem;background:var(--slate)}
+.stat{background:rgba(255,255,255,.07);border:1px solid rgba(201,132,154,.2);border-radius:10px;padding:.6rem .4rem;text-align:center}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--rose-lt);line-height:1}
+.stat-l{font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem}
+
+.filtro-toggle{padding:.55rem 1.1rem .3rem}
+.filtro-toggle button{background:none;border:1px solid var(--border);border-radius:50px;padding:.3rem .8rem;font-size:.72rem;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer}
+.filtro-panel{display:none;padding:.35rem 1.1rem .5rem;gap:.4rem;flex-wrap:wrap}
+.filtro-panel.open{display:flex}
+.fb{padding:.28rem .75rem;border-radius:50px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.7rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.fb.active{background:var(--rose);border-color:var(--rose);color:#fff}
+
+.lista{padding:.55rem 1.1rem 5rem;display:flex;flex-direction:column;gap:.65rem}
+.empty{text-align:center;padding:3rem 2rem;color:var(--muted)}
+.empty-icon{font-size:2.5rem;opacity:.4;margin-bottom:.6rem}
+.empty p{font-size:.85rem;line-height:1.65}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1rem;box-shadow:0 2px 8px rgba(201,132,154,.05)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.6rem}
+.card-nome{font-weight:600;font-size:.93rem}
+.card-data{font-size:.67rem;color:var(--muted);margin-top:.1rem}
+.sbadge{padding:.18rem .55rem;border-radius:50px;font-size:.65rem;font-weight:600;flex-shrink:0;margin-left:.4rem;white-space:nowrap}
+.s0{background:#fff3f6;color:#c0365a;border:1px solid #f0b0c0}
+.s1{background:#fff8e6;color:#a07010;border:1px solid #e8d080}
+.s2{background:#f0f4ff;color:#3050bb;border:1px solid #b0c4f8}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.55rem}
+.chip{background:var(--rose-bg);border-radius:6px;padding:.18rem .5rem;font-size:.68rem;color:var(--rose-dk);display:inline-flex;align-items:center;gap:.2rem}
+.chip-link{background:#f0f4ff;color:#3050bb;border:1px solid #b0c4f8;cursor:pointer}
+.card-obs{font-size:.74rem;color:var(--muted);font-style:italic;line-height:1.5;border-top:1px solid var(--border);padding-top:.5rem}
+.card-actions{display:flex;gap:.38rem;margin-top:.75rem}
+.btn-wpp{flex:1;display:flex;align-items:center;justify-content:center;gap:.3rem;background:#25d366;color:#fff;border:none;border-radius:8px;padding:.5rem;font-size:.74rem;font-weight:600;cursor:pointer;text-decoration:none;font-family:'DM Sans',sans-serif}
+.btn-ic{width:35px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.85rem;cursor:pointer;border:none;background:var(--rose-bg)}
+.btn-ic-del{background:#fff0f0}
+
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;padding:.7rem 1.1rem 5rem}
+.peca-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(201,132,154,.05);position:relative}
+.peca-card.alerta{border-color:var(--alert);box-shadow:0 2px 12px rgba(224,85,85,.2)}
+.alerta-badge{position:absolute;top:.4rem;right:.4rem;background:var(--alert);color:#fff;font-size:.58rem;font-weight:700;padding:.15rem .4rem;border-radius:20px;z-index:2}
+.peca-foto{width:100%;aspect-ratio:3/4;background:var(--rose-bg);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--rose-lt);cursor:pointer;overflow:hidden}
+.peca-foto img{width:100%;height:100%;object-fit:cover}
+.peca-info{padding:.6rem}
+.peca-cod{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--rose-dk)}
+.peca-tipo{font-size:.65rem;color:var(--muted);margin-bottom:.3rem}
+.peca-estado{font-size:.64rem;font-weight:600;padding:.16rem .45rem;border-radius:20px;display:inline-block;margin-bottom:.3rem}
+.pe-ok{background:var(--green-bg);color:var(--green)}
+.pe-def{background:var(--alert-bg);color:var(--alert)}
+.peca-loc{font-size:.65rem;color:var(--muted)}
+.peca-alug{font-size:.62rem;color:var(--rose);margin-top:.15rem}
+.peca-obs-def{font-size:.67rem;color:var(--alert);font-style:italic;margin-top:.25rem;background:var(--alert-bg);padding:.25rem .45rem;border-radius:6px;line-height:1.4}
+.peca-btns{display:flex;gap:.28rem;padding:.4rem .6rem .6rem;border-top:1px solid var(--border)}
+.peca-btns button{flex:1;padding:.38rem;border-radius:7px;border:none;font-size:.65rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-datas{background:#f0f4ff;color:#3050bb}
+.btn-edit-p{background:var(--rose-bg);color:var(--rose-dk)}
+.btn-del-p{background:#fff0f0;color:var(--alert)}
+.datas-panel{display:none;padding:.4rem .6rem .55rem;border-top:1px solid var(--border)}
+.datas-panel.open{display:block}
+.data-item{font-size:.68rem;background:#f0f4ff;color:#3050bb;padding:.2rem .45rem;border-radius:6px;margin-bottom:.25rem;display:flex;justify-content:space-between;align-items:center}
+.data-rm{cursor:pointer;color:var(--alert)}
+.add-data-row{display:flex;gap:.28rem;margin-top:.35rem}
+.add-data-row input{flex:1;padding:.3rem .45rem;border:1.5px solid var(--border);border-radius:6px;font-size:.68rem;font-family:'DM Sans',sans-serif;outline:none;background:var(--bg)}
+.add-data-row button{padding:.3rem .5rem;background:var(--rose);color:#fff;border:none;border-radius:6px;font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+.cont-wrap{padding:.7rem 1.1rem 5rem;display:flex;flex-direction:column;gap:.65rem}
+.ia-area{background:var(--slate);border:2px dashed rgba(201,132,154,.35);border-radius:14px;padding:1.5rem 1rem;text-align:center;cursor:pointer}
+.ia-area:active{background:var(--slate2)}
+.ia-icon{font-size:2rem;margin-bottom:.5rem}
+.ia-title{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--rose-lt);margin-bottom:.2rem;font-weight:600}
+.ia-sub{font-size:.74rem;color:rgba(255,255,255,.4);line-height:1.5}
+.ia-loading{display:none;text-align:center;padding:1.2rem;background:var(--slate);border-radius:14px}
+.spinner{width:26px;height:26px;border:3px solid rgba(201,132,154,.2);border-top-color:var(--rose);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .6rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ia-loading p{font-size:.8rem;color:rgba(255,255,255,.4)}
+
+.cont-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1rem;box-shadow:0 2px 8px rgba(201,132,154,.05)}
+.cont-nome{font-weight:600;font-size:.93rem}
+.cont-sub{font-size:.67rem;color:var(--muted);margin-top:.1rem;margin-bottom:.6rem}
+.cont-chips{display:flex;flex-wrap:wrap;gap:.28rem;margin-bottom:.55rem}
+.cc{background:var(--rose-bg);border-radius:6px;padding:.18rem .5rem;font-size:.68rem;color:var(--rose-dk)}
+.cc-azul{background:#f0f4ff;color:#3050bb;cursor:pointer}
+.cc-roxo{background:#f5f0ff;color:#7050cc}
+.saldo-box{border-radius:8px;padding:.45rem .65rem;margin-bottom:.55rem;display:flex;justify-content:space-between;align-items:center;background:var(--alert-bg);border:1px solid rgba(224,85,85,.2)}
+.saldo-box.ok{background:var(--green-bg);border-color:rgba(76,175,125,.2)}
+.saldo-label{font-size:.72rem;font-weight:600;color:var(--alert)}
+.saldo-box.ok .saldo-label{color:var(--green)}
+.saldo-val{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--alert)}
+.saldo-box.ok .saldo-val{color:var(--green)}
+.ensaios-sec{border-top:1px solid var(--border);padding-top:.55rem;margin-top:.4rem}
+.ensaios-title{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.38rem}
+.ens-item{background:var(--rose-bg);border-radius:8px;padding:.35rem .55rem;margin-bottom:.25rem;font-size:.72rem;color:var(--rose-dk)}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--slate);border-top:1px solid rgba(201,132,154,.15);display:grid;grid-template-columns:repeat(3,1fr);z-index:50;box-shadow:0 -4px 16px rgba(45,49,66,.4)}
+.ntab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;cursor:pointer;border:none;background:transparent;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,.3)}
+.ntab .ni{font-size:1.3rem}
+.ntab .nl{font-size:.57rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+.ntab.active{color:var(--rose-lt)}
+
+.ov{position:fixed;inset:0;background:rgba(26,20,30,.65);z-index:100;display:none;align-items:flex-end;backdrop-filter:blur(3px)}
+.ov.open{display:flex}
+.modal{background:var(--white);width:100%;border-radius:20px 20px 0 0;padding:1.2rem 1.1rem 2.2rem;max-height:91vh;overflow-y:auto}
+.m-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .9rem}
+.m-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--slate);margin-bottom:1rem;text-align:center}
+.field{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.8rem}
+.field label{font-size:.68rem;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.field input,.field select,.field textarea{padding:.75rem .85rem;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--rose);background:var(--white)}
+.field textarea{resize:none;min-height:68px}
+.field small{font-size:.65rem;color:var(--muted);margin-top:.12rem}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.sdiv{font-size:.68rem;font-weight:700;color:var(--rose-dk);text-transform:uppercase;letter-spacing:.12em;padding:.35rem 0 .18rem;border-bottom:1px solid var(--border);margin-bottom:.8rem}
+.btn-save{width:100%;padding:.88rem;background:var(--rose);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:700;cursor:pointer;margin-top:.35rem;box-shadow:0 6px 14px rgba(201,132,154,.3)}
+.btn-save:active{background:var(--rose-dk)}
+.btn-cancel{width:100%;padding:.7rem;background:transparent;color:var(--muted);border:none;font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer;margin-top:.2rem}
+
+.ens-add{display:grid;grid-template-columns:1fr 1fr auto;gap:.45rem;align-items:end;margin-bottom:.45rem}
+.ens-add button{padding:.75rem .6rem;background:var(--rose);color:#fff;border:none;border-radius:10px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.ens-prev{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.45rem}
+.ep-item{background:var(--rose-bg);border-radius:8px;padding:.32rem .55rem;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--rose-dk)}
+.ep-rm{cursor:pointer;color:var(--alert)}
+
+.pag-calc{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.65rem .85rem;margin-top:-.35rem;margin-bottom:.8rem;display:none}
+.pag-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.18rem}
+.pag-neg{color:var(--alert);font-weight:700}
+.pag-ok{color:var(--green);font-weight:700}
+
+/* Loading overlay */
+.loading-screen{position:fixed;inset:0;background:var(--slate);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.loading-screen .brand-icon-big{width:60px;height:60px;background:var(--rose);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:#fff;position:relative}
+.loading-screen .brand-icon-big::after{content:'🦋';position:absolute;top:-12px;right:-8px;font-size:1rem}
+.loading-screen p{color:rgba(255,255,255,.5);font-size:.85rem}
+
+.toast{position:fixed;bottom:calc(var(--nav-h) + .65rem);left:50%;transform:translateX(-50%) translateY(10px);background:var(--slate);color:#fff;padding:.58rem 1.1rem;border-radius:50px;font-size:.76rem;font-weight:500;z-index:200;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-screen" id="loading-screen">
+  <div class="brand-icon-big">SD</div>
+  <p>Conectando...</p>
+</div>
+
+<div class="pages">
+
+  <div class="page active" id="page-visitantes">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">SD</div>
+        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Visitantes</div></div>
+      </div>
+      <button class="btn-add" onclick="abrirMV()">+ Registrar</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="vst-total">0</div><div class="stat-l">Total</div></div>
+      <div class="stat"><div class="stat-n" id="vst-pend" style="color:#f0c060">0</div><div class="stat-l">Pendentes</div></div>
+      <div class="stat"><div class="stat-n" id="vst-ret" style="color:var(--rose-lt)">0</div><div class="stat-l">Retornar</div></div>
+    </div>
+    <div class="filtro-toggle">
+      <button onclick="toggleFiltro()">🔽 Filtrar por status</button>
+    </div>
+    <div class="filtro-panel" id="filtro-panel">
+      <button class="fb active" onclick="filtrarV('todos',this)">Todos</button>
+      <button class="fb" onclick="filtrarV('0',this)">Não fechou</button>
+      <button class="fb" onclick="filtrarV('1',this)">Assinou sem pagar</button>
+      <button class="fb" onclick="filtrarV('2',this)">Aguardando retorno</button>
+    </div>
+    <div class="lista" id="lista-v"></div>
+  </div>
+
+  <div class="page" id="page-catalogo">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">SD</div>
+        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Catálogo</div></div>
+      </div>
+      <button class="btn-add" onclick="abrirMP()">+ Peça</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="cat-total">0</div><div class="stat-l">Total</div></div>
+      <div class="stat"><div class="stat-n" id="cat-ok" style="color:#80dfaa">0</div><div class="stat-l">Ok</div></div>
+      <div class="stat"><div class="stat-n" id="cat-def" style="color:#f08080">0</div><div class="stat-l">⚠️ Defeito</div></div>
+    </div>
+    <div class="cat-grid" id="grid-p"></div>
+  </div>
+
+  <div class="page" id="page-contratos">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">SD</div>
+        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Contratos</div></div>
+      </div>
+    </div>
+    <div class="cont-wrap">
+      <div class="ia-area" onclick="document.getElementById('ia-input').click()">
+        <div class="ia-icon">📄✨</div>
+        <div class="ia-title">Ler contrato com IA</div>
+        <div class="ia-sub">Tire foto do contrato — a IA cria a ficha automaticamente</div>
+        <input type="file" id="ia-input" style="display:none" accept="image/*" capture="environment" onchange="lerContrato(event)"/>
+      </div>
+      <div class="ia-loading" id="ia-loading">
+        <div class="spinner"></div>
+        <p>Lendo contrato com IA...</p>
+      </div>
+      <div id="lista-c"></div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bnav">
+  <button class="ntab active" onclick="irPara('visitantes',this)"><span class="ni">👥</span><span class="nl">Visitantes</span></button>
+  <button class="ntab" onclick="irPara('catalogo',this)"><span class="ni">👗</span><span class="nl">Catálogo</span></button>
+  <button class="ntab" onclick="irPara('contratos',this)"><span class="ni">📄</span><span class="nl">Contratos</span></button>
+</nav>
+
+<!-- MODAL VISITANTE -->
+<div class="ov" id="ov-v" onclick="fecharOv('ov-v',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title" id="mv-titulo">Nova Visita</div>
+    <div class="field"><label>Nome</label><input id="mv-nome" type="text" placeholder="Nome da visitante"/></div>
+    <div class="field"><label>Telefone / WhatsApp</label><input id="mv-tel" type="tel" placeholder="(32) 99999-9999"/></div>
+    <div class="frow">
+      <div class="field"><label>Data do evento</label><input id="mv-data" type="date"/></div>
+      <div class="field"><label>Status</label>
+        <select id="mv-status">
+          <option value="0">Não fechou</option>
+          <option value="1">Assinou sem pagar</option>
+          <option value="2">Aguardando retorno</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Código(s) do vestido experimentado</label>
+      <input id="mv-vestido" type="text" placeholder="Ex: 032, 018"/>
+      <small>Separe por vírgula. Linka com o catálogo.</small>
+    </div>
+    <div class="field"><label>Cor preferida</label><input id="mv-cor" type="text" placeholder="Rosa, azul, branco..."/></div>
+    <div class="field"><label>Observações</label><textarea id="mv-obs" placeholder="Orçamento, preferências, motivo..."></textarea></div>
+    <button class="btn-save" onclick="salvarV()">Salvar visita</button>
+    <button class="btn-cancel" onclick="fecharOv('ov-v')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL PEÇA -->
+<div class="ov" id="ov-p" onclick="fecharOv('ov-p',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title" id="mp-titulo">Nova Peça</div>
+    <div class="field">
+      <label>Foto</label>
+      <input id="mp-foto-i" type="file" accept="image/*" style="display:none" onchange="prevFoto(event)"/>
+      <div id="mp-foto-prev" onclick="document.getElementById('mp-foto-i').click()" style="width:100%;height:120px;background:var(--rose-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:2rem;color:var(--rose-lt);overflow:hidden;border:1.5px dashed var(--rose-lt)">👗</div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Código</label><input id="mp-cod" type="text" placeholder="Ex: 032"/></div>
+      <div class="field"><label>Tipo</label>
+        <select id="mp-tipo">
+          <option>Recepção</option>
+          <option>Valsa</option>
+          <option>Pista</option>
+          <option>Acompanhante</option>
+          <option>Espelho</option>
+          <option>Coroa</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Cor</label><input id="mp-cor" type="text" placeholder="Rosa, azul..."/></div>
+      <div class="field"><label>Localização</label>
+        <select id="mp-loc">
+          <option>Na loja</option>
+          <option>Costureira</option>
+          <option>Lavanderia</option>
+          <option>Ensaio</option>
+          <option>Festa</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Estado</label>
+      <select id="mp-estado">
+        <option value="ok">✅ Perfeito estado</option>
+        <option value="defeito">⚠️ Com defeito</option>
+      </select>
+    </div>
+    <div class="field"><label>Defeitos / Observações</label><textarea id="mp-obs" placeholder="Ex: precisa trocar zíper..."></textarea></div>
+    <button class="btn-save" onclick="salvarP()">Salvar peça</button>
+    <button class="btn-cancel" onclick="fecharOv('ov-p')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL CONTRATO -->
+<div class="ov" id="ov-c" onclick="fecharOv('ov-c',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title" id="mc-titulo">Ficha da Cliente</div>
+    <div class="sdiv">👤 Identificação</div>
+    <div class="field"><label>Nome do responsável</label><input id="mc-resp" type="text" placeholder="Quem assinou o contrato"/></div>
+    <div class="field"><label>Nome da debutante</label><input id="mc-deb" type="text" placeholder="Nome da debutante"/></div>
+    <div class="field"><label>Telefone / WhatsApp</label><input id="mc-tel" type="tel" placeholder="(32) 99999-9999"/></div>
+    <div class="sdiv">🎉 Evento</div>
+    <div class="frow">
+      <div class="field"><label>Data do evento</label><input id="mc-data" type="date"/></div>
+      <div class="field"><label>Tipo</label>
+        <select id="mc-tipo">
+          <option>Festa 15 anos</option>
+          <option>Ensaio</option>
+          <option>Dança</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="sdiv">👗 Vestido principal</div>
+    <div class="field">
+      <label>Código do vestido</label>
+      <input id="mc-cod" type="text" placeholder="Ex: 032"/>
+      <small>Linka automaticamente com o catálogo</small>
+    </div>
+    <div class="field"><label>Primeira locação?</label>
+      <select id="mc-primloc">
+        <option value="nao">Não</option>
+        <option value="sim">Sim — primeira locação</option>
+      </select>
+    </div>
+    <div class="sdiv">💃 Vestidos de ensaio</div>
+    <div class="ens-add">
+      <div class="field" style="margin:0"><label>Código</label><input id="ens-cod" type="text" placeholder="032"/></div>
+      <div class="field" style="margin:0"><label>Data</label><input id="ens-data" type="date"/></div>
+      <button onclick="addEnsaio()">+ Add</button>
+    </div>
+    <div class="ens-prev" id="ens-prev"></div>
+    <div class="sdiv">💰 Pagamento</div>
+    <div class="frow">
+      <div class="field"><label>Valor total (R$)</label><input id="mc-total" type="number" placeholder="1200" oninput="calcSaldo()"/></div>
+      <div class="field"><label>Valor pago (R$)</label><input id="mc-pago" type="number" placeholder="400" oninput="calcSaldo()"/></div>
+    </div>
+    <div class="pag-calc" id="pag-calc">
+      <div class="pag-row"><span>Total</span><span id="pc-total"></span></div>
+      <div class="pag-row"><span>Pago</span><span id="pc-pago"></span></div>
+      <div class="pag-row" id="pc-row"><span id="pc-label">Saldo restante</span><span id="pc-saldo"></span></div>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="mc-obs" placeholder="Outras informações..."></textarea></div>
+    <button class="btn-save" onclick="salvarC()">Confirmar e salvar ficha</button>
+    <button class="btn-cancel" onclick="fecharOv('ov-c')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SUPABASE ──
+var SUPA_URL = 'https://yjxqxhzevfdgobnocltg.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeHF4aHpldmZkZ29ibm9jbHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ4NjMsImV4cCI6MjA5NTIxMDg2M30.pDnLZc_yn4uAfEPPq6fWoJvT_YkoQtO8A2JUIM1PC80';
+var db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+var V = [], P = [], C = [], ensTmp = [];
+var vFiltro = 'todos', vEd = null, pEd = null, cEd = null;
+var SL = ['Não fechou', 'Assinou sem pagar', 'Aguardando retorno'];
+var SLOC = {'Na loja':'🏪','Costureira':'🧵','Lavanderia':'🫧','Ensaio':'💃','Festa':'🎉'};
+
+// ── INIT ──
+async function init() {
+  try {
+    await Promise.all([loadV(), loadP(), loadC()]);
+    // Realtime
+    db.channel('changes')
+      .on('postgres_changes', {event:'*', schema:'public', table:'visitantes'}, function() { loadV(); })
+      .on('postgres_changes', {event:'*', schema:'public', table:'pecas'}, function() { loadP(); })
+      .on('postgres_changes', {event:'*', schema:'public', table:'contratos'}, function() { loadC(); })
+      .subscribe();
+  } catch(e) {
+    toast('⚠️ Erro de conexão');
+  }
+  document.getElementById('loading-screen').style.display = 'none';
+}
+
+async function loadV() {
+  var res = await db.from('visitantes').select('*').order('ts', {ascending: false});
+  if (res.data) { V = res.data; rV(); }
+}
+async function loadP() {
+  var res = await db.from('pecas').select('*').order('ts', {ascending: false});
+  if (res.data) { P = res.data; rP(); }
+}
+async function loadC() {
+  var res = await db.from('contratos').select('*').order('ts', {ascending: false});
+  if (res.data) { C = res.data; rC(); }
+}
+
+// ── NAV ──
+function irPara(pg, btn) {
+  var pages = document.querySelectorAll('.page');
+  var tabs = document.querySelectorAll('.ntab');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  document.getElementById('page-' + pg).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── VISITANTES ──
+function rV() {
+  var l = document.getElementById('lista-v');
+  var fs = vFiltro === 'todos' ? V.slice() : V.filter(function(v) { return String(v.status) === vFiltro; });
+  document.getElementById('vst-total').textContent = V.length;
+  document.getElementById('vst-pend').textContent = V.filter(function(v) { return v.status < 2; }).length;
+  document.getElementById('vst-ret').textContent = V.filter(function(v) { return v.status == 2; }).length;
+  if (!fs.length) {
+    l.innerHTML = '<div class="empty"><div class="empty-icon">🦋</div><p>' + (vFiltro === 'todos' ? 'Nenhuma visita ainda.<br>Toque em <strong>+ Registrar</strong>.' : 'Nenhuma visita com esse status.') + '</p></div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < fs.length; i++) {
+    var v = fs[i];
+    var cods = v.vestido ? v.vestido.split(',') : [];
+    var chipsHtml = '';
+    for (var j = 0; j < cods.length; j++) {
+      var cod = cods[j].trim(); if (!cod) continue;
+      var peca = null;
+      for (var k = 0; k < P.length; k++) { if (P[k].cod.trim().toLowerCase() === cod.toLowerCase()) { peca = P[k]; break; } }
+      chipsHtml += peca
+        ? '<span class="chip chip-link" onclick="irParaPeca(\'' + peca.id + '\')">🔗 #' + cod + (peca.cor ? ' — ' + peca.cor : '') + '</span>'
+        : '<span class="chip">👗 #' + cod + '</span>';
+    }
+    if (v.cor) chipsHtml += '<span class="chip">🎨 ' + v.cor + '</span>';
+    var wppHtml = v.tel ? '<a class="btn-wpp" href="https://wa.me/55' + v.tel.replace(/\D/g,'') + '" target="_blank">💬 WhatsApp</a>' : '<span style="flex:1;text-align:center;font-size:.72rem;color:var(--muted)">Sem telefone</span>';
+    html += '<div class="card">';
+    html += '<div class="card-top"><div><div class="card-nome">' + (v.nome||'—') + '</div><div class="card-data">' + (v.data_evento ? '🎉 '+fd(v.data_evento)+' · ' : '') + fts(v.ts) + '</div></div>';
+    html += '<span class="sbadge s' + v.status + '">' + SL[v.status] + '</span></div>';
+    if (chipsHtml) html += '<div class="chips">' + chipsHtml + '</div>';
+    if (v.obs) html += '<div class="card-obs">"' + v.obs + '"</div>';
+    html += '<div class="card-actions">' + wppHtml;
+    html += '<button class="btn-ic" onclick="abrirMV(\'' + v.id + '\')">✏️</button>';
+    html += '<button class="btn-ic btn-ic-del" onclick="delV(\'' + v.id + '\')">🗑️</button>';
+    html += '</div></div>';
+  }
+  l.innerHTML = html;
+}
+
+function abrirMV(id) {
+  vEd = id || null;
+  document.getElementById('mv-titulo').textContent = id ? 'Editar Visita' : 'Nova Visita';
+  var v = id ? (function(){ for(var i=0;i<V.length;i++) if(V[i].id===id) return V[i]; return {}; })() : {};
+  document.getElementById('mv-nome').value = v.nome || '';
+  document.getElementById('mv-tel').value = v.tel || '';
+  document.getElementById('mv-data').value = v.data_evento || '';
+  document.getElementById('mv-status').value = v.status || '0';
+  document.getElementById('mv-vestido').value = v.vestido || '';
+  document.getElementById('mv-cor').value = v.cor || '';
+  document.getElementById('mv-obs').value = v.obs || '';
+  document.getElementById('ov-v').classList.add('open');
+}
+
+async function salvarV() {
+  var nome = document.getElementById('mv-nome').value.trim();
+  if (!nome) { toast('⚠️ Informe o nome'); return; }
+  var d = { nome:nome, tel:document.getElementById('mv-tel').value.trim(), data_evento:document.getElementById('mv-data').value, status:parseInt(document.getElementById('mv-status').value), vestido:document.getElementById('mv-vestido').value.trim(), cor:document.getElementById('mv-cor').value.trim(), obs:document.getElementById('mv-obs').value.trim() };
+  if (vEd) {
+    await db.from('visitantes').update(d).eq('id', vEd);
+  } else {
+    d.id = Date.now().toString(); d.ts = Date.now();
+    await db.from('visitantes').insert(d);
+  }
+  fecharOv('ov-v'); toast('✅ Visita salva!'); await loadV();
+}
+
+async function delV(id) {
+  if (!confirm('Remover esta visita?')) return;
+  await db.from('visitantes').delete().eq('id', id);
+  toast('🗑️ Removida'); await loadV();
+}
+
+function toggleFiltro() { document.getElementById('filtro-panel').classList.toggle('open'); }
+function filtrarV(val, btn) {
+  vFiltro = val;
+  var btns = document.querySelectorAll('.fb');
+  for (var i=0;i<btns.length;i++) btns[i].classList.remove('active');
+  btn.classList.add('active'); rV();
+}
+function irParaPeca(id) {
+  var tabs = document.querySelectorAll('.ntab');
+  irPara('catalogo', tabs[1]);
+  setTimeout(function() {
+    var el = document.getElementById('pc-'+id);
+    if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.outline='2px solid var(--rose)'; setTimeout(function(){el.style.outline='';},1800); }
+  }, 300);
+}
+
+// ── CATÁLOGO ──
+function rP() {
+  var g = document.getElementById('grid-p');
+  document.getElementById('cat-total').textContent = P.length;
+  document.getElementById('cat-ok').textContent = P.filter(function(p){return p.estado==='ok';}).length;
+  document.getElementById('cat-def').textContent = P.filter(function(p){return p.estado==='defeito';}).length;
+  if (!P.length) { g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👗</div><p>Nenhuma peça.<br>Toque em <strong>+ Peça</strong>.</p></div>'; return; }
+  var html = '';
+  for (var i=0;i<P.length;i++) {
+    var p = P[i];
+    var isAlerta = p.estado === 'defeito';
+    var datas = p.datas || [];
+    var datasHtml = '';
+    for (var j=0;j<datas.length;j++) datasHtml += '<div class="data-item"><span>📅 '+fd(datas[j])+'</span><span class="data-rm" onclick="remData(\''+p.id+'\','+j+')">✕</span></div>';
+    html += '<div class="peca-card'+(isAlerta?' alerta':'')+'" id="pc-'+p.id+'">';
+    if (isAlerta) html += '<div class="alerta-badge">⚠️ DEFEITO</div>';
+    html += '<div class="peca-foto" onclick="document.getElementById(\'pf-'+p.id+'\').click()">'+(p.foto?'<img src="'+p.foto+'" alt="foto"/>'  :'👗')+'<input type="file" id="pf-'+p.id+'" style="display:none" accept="image/*" onchange="trocarFoto(event,\''+p.id+'\')" /></div>';
+    html += '<div class="peca-info"><div class="peca-cod">#'+p.cod+'</div><div class="peca-tipo">'+(p.tipo||'—')+' · '+(p.cor||'—')+'</div>';
+    html += '<span class="peca-estado '+(isAlerta?'pe-def':'pe-ok')+'">'+(isAlerta?'⚠️ Com defeito':'✅ Perfeito estado')+'</span>';
+    html += '<div class="peca-loc">'+(SLOC[p.loc]||'🏪')+' '+(p.loc||'Na loja')+'</div>';
+    html += '<div class="peca-alug">🔁 '+(p.loc_count||0)+'× alugado</div>';
+    if (p.obs && isAlerta) html += '<div class="peca-obs-def">⚠️ '+p.obs+'</div>';
+    html += '</div><div class="datas-panel" id="dp-'+p.id+'">'+datasHtml+'<div class="add-data-row"><input type="date" id="nd-'+p.id+'"/><button onclick="addData(\''+p.id+'\')">+ Data</button></div></div>';
+    html += '<div class="peca-btns"><button class="btn-datas" onclick="toggleDatas(\''+p.id+'\')">📅</button><button class="btn-edit-p" onclick="abrirMP(\''+p.id+'\')">✏️</button><button class="btn-del-p" onclick="delP(\''+p.id+'\')">🗑️</button></div></div>';
+  }
+  g.innerHTML = html;
+}
+
+function abrirMP(id) {
+  pEd = id || null;
+  document.getElementById('mp-titulo').textContent = id ? 'Editar Peça' : 'Nova Peça';
+  var p = id ? (function(){ for(var i=0;i<P.length;i++) if(P[i].id===id) return P[i]; return {}; })() : {};
+  document.getElementById('mp-cod').value = p.cod||'';
+  document.getElementById('mp-tipo').value = p.tipo||'Recepção';
+  document.getElementById('mp-cor').value = p.cor||'';
+  document.getElementById('mp-loc').value = p.loc||'Na loja';
+  document.getElementById('mp-estado').value = p.estado||'ok';
+  document.getElementById('mp-obs').value = p.obs||'';
+  var prev = document.getElementById('mp-foto-prev');
+  prev.innerHTML = p.foto ? '<img src="'+p.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>' : '👗';
+  prev._foto = p.foto || null;
+  document.getElementById('ov-p').classList.add('open');
+}
+
+async function salvarP() {
+  var cod = document.getElementById('mp-cod').value.trim();
+  if (!cod) { toast('⚠️ Informe o código'); return; }
+  var prev = document.getElementById('mp-foto-prev');
+  var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
+  if (pEd) {
+    await db.from('pecas').update(d).eq('id', pEd);
+  } else {
+    d.id = Date.now().toString(); d.ts = Date.now(); d.datas = []; d.loc_count = 0;
+    await db.from('pecas').insert(d);
+  }
+  fecharOv('ov-p'); toast('✅ Peça salva!'); await loadP(); rV();
+}
+
+async function delP(id) {
+  if (!confirm('Remover esta peça?')) return;
+  await db.from('pecas').delete().eq('id', id);
+  toast('🗑️ Removida'); await loadP();
+}
+
+function prevFoto(e) {
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader(); r.onload=function(ev){ var prev=document.getElementById('mp-foto-prev'); prev.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>'; prev._foto=ev.target.result; }; r.readAsDataURL(f);
+}
+function trocarFoto(e, id) {
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader(); r.onload=async function(ev){ await db.from('pecas').update({foto:ev.target.result}).eq('id',id); await loadP(); }; r.readAsDataURL(f);
+}
+function toggleDatas(id){ document.getElementById('dp-'+id).classList.toggle('open'); }
+async function addData(id) {
+  var inp=document.getElementById('nd-'+id); var d=inp.value; if(!d){toast('⚠️ Escolha uma data');return;}
+  var peca=null; for(var i=0;i<P.length;i++) if(P[i].id===id){peca=P[i];break;}
+  if(!peca) return;
+  var datas=(peca.datas||[]).slice(); datas.push(d); datas.sort();
+  await db.from('pecas').update({datas:datas}).eq('id',id);
+  inp.value=''; await loadP(); toast('📅 Data adicionada');
+}
+async function remData(id, idx) {
+  var peca=null; for(var i=0;i<P.length;i++) if(P[i].id===id){peca=P[i];break;}
+  if(!peca) return;
+  var datas=(peca.datas||[]).slice(); datas.splice(idx,1);
+  await db.from('pecas').update({datas:datas}).eq('id',id); await loadP();
+}
+
+// ── CONTRATOS ──
+function calcSaldo() {
+  var total=parseFloat(document.getElementById('mc-total').value)||0;
+  var pago=parseFloat(document.getElementById('mc-pago').value)||0;
+  var box=document.getElementById('pag-calc');
+  if(total<=0){box.style.display='none';return;}
+  box.style.display='block';
+  var saldo=total-pago;
+  document.getElementById('pc-total').textContent='R$ '+total.toFixed(2).replace('.',',');
+  document.getElementById('pc-pago').textContent='R$ '+pago.toFixed(2).replace('.',',');
+  document.getElementById('pc-saldo').textContent='R$ '+Math.abs(saldo).toFixed(2).replace('.',',');
+  var row=document.getElementById('pc-row');
+  row.className='pag-row '+(saldo<=0?'pag-ok':'pag-neg');
+  document.getElementById('pc-label').textContent=saldo<=0?'✅ Quitado':'Saldo restante';
+}
+function addEnsaio() {
+  var cod=document.getElementById('ens-cod').value.trim();
+  var data=document.getElementById('ens-data').value;
+  if(!cod||!data){toast('⚠️ Preencha código e data');return;}
+  ensTmp.push({cod:cod,data:data});
+  document.getElementById('ens-cod').value='';
+  document.getElementById('ens-data').value='';
+  rEnsTmp(); toast('💃 Ensaio adicionado');
+}
+function remEnsaio(i){ensTmp.splice(i,1);rEnsTmp();}
+function rEnsTmp() {
+  var html='';
+  for(var i=0;i<ensTmp.length;i++) html+='<div class="ep-item"><span>👗 #'+ensTmp[i].cod+' — 📅 '+fd(ensTmp[i].data)+'</span><span class="ep-rm" onclick="remEnsaio('+i+')">✕</span></div>';
+  document.getElementById('ens-prev').innerHTML=html;
+}
+
+async function lerContrato(e) {
+  var file=e.target.files[0]; if(!file) return; e.target.value='';
+  document.querySelector('.ia-area').style.display='none';
+  document.getElementById('ia-loading').style.display='block';
+  var b64=await toB64(file);
+  try {
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:'Analise este contrato de aluguel de vestido de debutante/festa. Retorne APENAS JSON puro sem markdown: {"responsavel":"","debutante":"","tel":"","dataEvento":"YYYY-MM-DD","codVestido":"","tipoEvento":"Festa 15 anos","valorTotal":"","valorPago":"","obs":""}'}]}]})});
+    var data=await res.json();
+    var txt=(data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:'{}';
+    var info={}; try{info=JSON.parse(txt.replace(/```json|```/g,'').trim());}catch(ex){info={};}
+    preencherC(info);
+  } catch(err) { toast('⚠️ Erro na IA. Preencha manualmente.'); preencherC({}); }
+  document.getElementById('ia-loading').style.display='none';
+  document.querySelector('.ia-area').style.display='block';
+}
+
+function preencherC(info) {
+  cEd=null; ensTmp=[];
+  document.getElementById('mc-titulo').textContent='Ficha da Cliente';
+  document.getElementById('mc-resp').value=info.responsavel||'';
+  document.getElementById('mc-deb').value=info.debutante||'';
+  document.getElementById('mc-tel').value=info.tel||'';
+  document.getElementById('mc-data').value=info.dataEvento||'';
+  document.getElementById('mc-cod').value=info.codVestido||'';
+  document.getElementById('mc-tipo').value=info.tipoEvento||'Festa 15 anos';
+  document.getElementById('mc-primloc').value='nao';
+  document.getElementById('mc-total').value=info.valorTotal||'';
+  document.getElementById('mc-pago').value=info.valorPago||'';
+  document.getElementById('mc-obs').value=info.obs||'';
+  rEnsTmp(); calcSaldo();
+  document.getElementById('ov-c').classList.add('open');
+}
+
+async function salvarC() {
+  var resp=document.getElementById('mc-resp').value.trim();
+  if(!resp){toast('⚠️ Informe o nome do responsável');return;}
+  var d={responsavel:resp,debutante:document.getElementById('mc-deb').value.trim(),tel:document.getElementById('mc-tel').value.trim(),data_evento:document.getElementById('mc-data').value,cod_vestido:document.getElementById('mc-cod').value.trim(),tipo_evento:document.getElementById('mc-tipo').value,primeira_loc:document.getElementById('mc-primloc').value,valor_total:document.getElementById('mc-total').value,valor_pago:document.getElementById('mc-pago').value,obs:document.getElementById('mc-obs').value.trim(),ensaios:ensTmp.slice()};
+  if(cEd){
+    await db.from('contratos').update(d).eq('id',cEd);
+  } else {
+    d.id=Date.now().toString(); d.ts=Date.now();
+    await db.from('contratos').insert(d);
+    if(d.cod_vestido){
+      for(var i=0;i<P.length;i++){
+        if(P[i].cod.trim().toLowerCase()===d.cod_vestido.trim().toLowerCase()){
+          await db.from('pecas').update({loc_count:(P[i].loc_count||0)+1}).eq('id',P[i].id); break;
+        }
+      }
+    }
+  }
+  fecharOv('ov-c'); toast('✅ Ficha salva!'); await loadC(); await loadP();
+}
+
+function rC() {
+  var l=document.getElementById('lista-c');
+  if(!C.length){l.innerHTML='<div class="empty"><div class="empty-icon">📄</div><p>Nenhum contrato ainda.<br>Use o botão acima para ler com IA.</p></div>';return;}
+  var html='';
+  for(var i=0;i<C.length;i++){
+    var c=C[i];
+    var peca=null;
+    if(c.cod_vestido){for(var k=0;k<P.length;k++){if(P[k].cod.trim().toLowerCase()===c.cod_vestido.trim().toLowerCase()){peca=P[k];break;}}}
+    var total=parseFloat(c.valor_total)||0;
+    var pago=parseFloat(c.valor_pago)||0;
+    var saldo=total>0?total-pago:null;
+    var ensaios=c.ensaios||[];
+    html+='<div class="cont-card">';
+    html+='<div class="cont-nome">'+c.responsavel+'</div>';
+    html+='<div class="cont-sub">'+(c.debutante?'👑 '+c.debutante+' · ':'')+( c.data_evento?'🎉 '+fd(c.data_evento):'Sem data')+'</div>';
+    html+='<div class="cont-chips"><span class="cc">'+(c.tipo_evento||'Evento')+'</span>';
+    if(c.cod_vestido){html+=peca?'<span class="cc cc-azul" onclick="irParaPeca(\''+peca.id+'\')">🔗 #'+c.cod_vestido+(peca.cor?' — '+peca.cor:'')+'</span>':'<span class="cc">👗 #'+c.cod_vestido+'</span>';}
+    if(c.primeira_loc==='sim') html+='<span class="cc cc-roxo">✨ 1ª locação</span>';
+    html+='</div>';
+    if(saldo!==null){var sq=saldo<=0;html+='<div class="saldo-box'+(sq?' ok':'')+'"><span class="saldo-label">'+(sq?'✅ Quitado':'⚠️ Saldo restante')+'</span><span class="saldo-val">R$ '+Math.abs(saldo).toFixed(2).replace('.',',')+'</span></div>';}
+    if(ensaios.length){html+='<div class="ensaios-sec"><div class="ensaios-title">💃 Vestidos de ensaio</div>';for(var j=0;j<ensaios.length;j++){var ep=null;for(var k=0;k<P.length;k++){if(P[k].cod.trim().toLowerCase()===ensaios[j].cod.toLowerCase()){ep=P[k];break;}}html+='<div class="ens-item">'+(ep?'<span style="cursor:pointer;color:#3050bb" onclick="irParaPeca(\''+ep.id+'\')">🔗 #'+ensaios[j].cod+'</span>':'👗 #'+ensaios[j].cod)+' · 📅 '+fd(ensaios[j].data)+'</div>';}html+='</div>';}
+    if(c.obs) html+='<div class="card-obs" style="margin-top:.45rem">"'+c.obs+'"</div>';
+    html+='<div class="card-actions">';
+    if(c.tel) html+='<a class="btn-wpp" href="https://wa.me/55'+c.tel.replace(/\D/g,'') +'" target="_blank">💬 WhatsApp</a>';
+    html+='<button class="btn-ic" onclick="editarC(\''+c.id+'\')">✏️</button>';
+    html+='<button class="btn-ic btn-ic-del" onclick="delC(\''+c.id+'\')">🗑️</button>';
+    html+='</div></div>';
+  }
+  l.innerHTML=html;
+}
+
+function editarC(id) {
+  cEd=id;
+  var c=null; for(var i=0;i<C.length;i++) if(C[i].id===id){c=C[i];break;}
+  ensTmp=(c.ensaios||[]).slice();
+  document.getElementById('mc-titulo').textContent='Editar Ficha';
+  document.getElementById('mc-resp').value=c.responsavel||'';
+  document.getElementById('mc-deb').value=c.debutante||'';
+  document.getElementById('mc-tel').value=c.tel||'';
+  document.getElementById('mc-data').value=c.data_evento||'';
+  document.getElementById('mc-cod').value=c.cod_vestido||'';
+  document.getElementById('mc-tipo').value=c.tipo_evento||'Festa 15 anos';
+  document.getElementById('mc-primloc').value=c.primeira_loc||'nao';
+  document.getElementById('mc-total').value=c.valor_total||'';
+  document.getElementById('mc-pago').value=c.valor_pago||'';
+  document.getElementById('mc-obs').value=c.obs||'';
+  rEnsTmp(); calcSaldo();
+  document.getElementById('ov-c').classList.add('open');
+}
+
+async function delC(id) {
+  if(!confirm('Remover esta ficha?')) return;
+  await db.from('contratos').delete().eq('id',id);
+  toast('🗑️ Removida'); await loadC();
+}
+
+// ── UTILS ──
+function fecharOv(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('open');}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
+function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function fts(ts){return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});}
+function toB64(f){return new Promise(function(r){var fr=new FileReader();fr.onload=function(e){r(e.target.result.split(',')[1]);};fr.readAsDataURL(f);});}
+
+init();
+</script>
+</body>
+</html>
