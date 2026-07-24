@@ -412,15 +412,18 @@ async function init() {
 
 async function loadV() {
   var res = await db.from('visitantes').select('*').order('ts', {ascending: false});
-  if (res.data) { V = res.data; rV(); }
+  if (res.error) { toast('⚠️ Erro ao carregar visitantes: ' + res.error.message); console.error('loadV', res.error); return; }
+  V = res.data || []; rV();
 }
 async function loadP() {
   var res = await db.from('pecas').select('*').order('ts', {ascending: false});
-  if (res.data) { P = res.data; rP(); }
+  if (res.error) { toast('⚠️ Erro ao carregar catálogo: ' + res.error.message); console.error('loadP', res.error); return; }
+  P = res.data || []; rP();
 }
 async function loadC() {
   var res = await db.from('contratos').select('*').order('ts', {ascending: false});
-  if (res.data) { C = res.data; rC(); }
+  if (res.error) { toast('⚠️ Erro ao carregar contratos: ' + res.error.message); console.error('loadC', res.error); return; }
+  C = res.data || []; rC();
 }
 
 // ── NAV ──
@@ -490,18 +493,21 @@ async function salvarV() {
   var nome = document.getElementById('mv-nome').value.trim();
   if (!nome) { toast('⚠️ Informe o nome'); return; }
   var d = { nome:nome, tel:document.getElementById('mv-tel').value.trim(), data_evento:document.getElementById('mv-data').value, status:parseInt(document.getElementById('mv-status').value), vestido:document.getElementById('mv-vestido').value.trim(), cor:document.getElementById('mv-cor').value.trim(), obs:document.getElementById('mv-obs').value.trim() };
+  var res;
   if (vEd) {
-    await db.from('visitantes').update(d).eq('id', vEd);
+    res = await db.from('visitantes').update(d).eq('id', vEd);
   } else {
     d.id = Date.now().toString(); d.ts = Date.now();
-    await db.from('visitantes').insert(d);
+    res = await db.from('visitantes').insert(d);
   }
+  if (res.error) { toast('⚠️ Erro ao salvar: ' + res.error.message); console.error('salvarV', res.error); return; }
   fecharOv('ov-v'); toast('✅ Visita salva!'); await loadV();
 }
 
 async function delV(id) {
   if (!confirm('Remover esta visita?')) return;
-  await db.from('visitantes').delete().eq('id', id);
+  var res = await db.from('visitantes').delete().eq('id', id);
+  if (res.error) { toast('⚠️ Erro ao remover: ' + res.error.message); console.error('delV', res.error); return; }
   toast('🗑️ Removida'); await loadV();
 }
 
@@ -570,18 +576,21 @@ async function salvarP() {
   if (!cod) { toast('⚠️ Informe o código'); return; }
   var prev = document.getElementById('mp-foto-prev');
   var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
+  var res;
   if (pEd) {
-    await db.from('pecas').update(d).eq('id', pEd);
+    res = await db.from('pecas').update(d).eq('id', pEd);
   } else {
     d.id = Date.now().toString(); d.ts = Date.now(); d.datas = []; d.loc_count = 0;
-    await db.from('pecas').insert(d);
+    res = await db.from('pecas').insert(d);
   }
+  if (res.error) { toast('⚠️ Erro ao salvar: ' + res.error.message); console.error('salvarP', res.error); return; }
   fecharOv('ov-p'); toast('✅ Peça salva!'); await loadP(); rV();
 }
 
 async function delP(id) {
   if (!confirm('Remover esta peça?')) return;
-  await db.from('pecas').delete().eq('id', id);
+  var res = await db.from('pecas').delete().eq('id', id);
+  if (res.error) { toast('⚠️ Erro ao remover: ' + res.error.message); console.error('delP', res.error); return; }
   toast('🗑️ Removida'); await loadP();
 }
 
@@ -591,7 +600,7 @@ function prevFoto(e) {
 }
 function trocarFoto(e, id) {
   var f=e.target.files[0]; if(!f) return;
-  var r=new FileReader(); r.onload=async function(ev){ await db.from('pecas').update({foto:ev.target.result}).eq('id',id); await loadP(); }; r.readAsDataURL(f);
+  var r=new FileReader(); r.onload=async function(ev){ var res=await db.from('pecas').update({foto:ev.target.result}).eq('id',id); if(res.error){toast('⚠️ Erro ao salvar foto: '+res.error.message);console.error('trocarFoto',res.error);return;} await loadP(); }; r.readAsDataURL(f);
 }
 function toggleDatas(id){ document.getElementById('dp-'+id).classList.toggle('open'); }
 async function addData(id) {
@@ -599,14 +608,17 @@ async function addData(id) {
   var peca=null; for(var i=0;i<P.length;i++) if(P[i].id===id){peca=P[i];break;}
   if(!peca) return;
   var datas=(peca.datas||[]).slice(); datas.push(d); datas.sort();
-  await db.from('pecas').update({datas:datas}).eq('id',id);
+  var res=await db.from('pecas').update({datas:datas}).eq('id',id);
+  if(res.error){toast('⚠️ Erro ao salvar data: '+res.error.message);console.error('addData',res.error);return;}
   inp.value=''; await loadP(); toast('📅 Data adicionada');
 }
 async function remData(id, idx) {
   var peca=null; for(var i=0;i<P.length;i++) if(P[i].id===id){peca=P[i];break;}
   if(!peca) return;
   var datas=(peca.datas||[]).slice(); datas.splice(idx,1);
-  await db.from('pecas').update({datas:datas}).eq('id',id); await loadP();
+  var res=await db.from('pecas').update({datas:datas}).eq('id',id);
+  if(res.error){toast('⚠️ Erro ao remover data: '+res.error.message);console.error('remData',res.error);return;}
+  await loadP();
 }
 
 // ── CONTRATOS ──
@@ -677,12 +689,13 @@ async function salvarC() {
   var resp=document.getElementById('mc-resp').value.trim();
   if(!resp){toast('⚠️ Informe o nome do responsável');return;}
   var d={responsavel:resp,debutante:document.getElementById('mc-deb').value.trim(),tel:document.getElementById('mc-tel').value.trim(),data_evento:document.getElementById('mc-data').value,cod_vestido:document.getElementById('mc-cod').value.trim(),tipo_evento:document.getElementById('mc-tipo').value,primeira_loc:document.getElementById('mc-primloc').value,valor_total:document.getElementById('mc-total').value,valor_pago:document.getElementById('mc-pago').value,obs:document.getElementById('mc-obs').value.trim(),ensaios:ensTmp.slice()};
+  var res;
   if(cEd){
-    await db.from('contratos').update(d).eq('id',cEd);
+    res = await db.from('contratos').update(d).eq('id',cEd);
   } else {
     d.id=Date.now().toString(); d.ts=Date.now();
-    await db.from('contratos').insert(d);
-    if(d.cod_vestido){
+    res = await db.from('contratos').insert(d);
+    if(!res.error && d.cod_vestido){
       for(var i=0;i<P.length;i++){
         if(P[i].cod.trim().toLowerCase()===d.cod_vestido.trim().toLowerCase()){
           await db.from('pecas').update({loc_count:(P[i].loc_count||0)+1}).eq('id',P[i].id); break;
@@ -690,6 +703,7 @@ async function salvarC() {
       }
     }
   }
+  if (res.error) { toast('⚠️ Erro ao salvar: ' + res.error.message); console.error('salvarC', res.error); return; }
   fecharOv('ov-c'); toast('✅ Ficha salva!'); await loadC(); await loadP();
 }
 
@@ -745,13 +759,14 @@ function editarC(id) {
 
 async function delC(id) {
   if(!confirm('Remover esta ficha?')) return;
-  await db.from('contratos').delete().eq('id',id);
+  var res = await db.from('contratos').delete().eq('id',id);
+  if (res.error) { toast('⚠️ Erro ao remover: ' + res.error.message); console.error('delC', res.error); return; }
   toast('🗑️ Removida'); await loadC();
 }
 
 // ── UTILS ──
 function fecharOv(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('open');}
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');var dur=msg.indexOf('⚠️')===0?5000:2600;clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show');},dur);}
 function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function fts(ts){return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function toB64(f){return new Promise(function(r){var fr=new FileReader();fr.onload=function(e){r(e.target.result.split(',')[1]);};fr.readAsDataURL(f);});}
