@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#2d3142"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="SD"/>
+<link rel="icon" href="favicon-32.png" sizes="32x32"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="manifest.json"/>
 <title>Sonho de Debutante</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -59,6 +62,20 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 .s0{background:#fff3f6;color:#c0365a;border:1px solid #f0b0c0}
 .s1{background:#fff8e6;color:#a07010;border:1px solid #e8d080}
 .s2{background:#f0f4ff;color:#3050bb;border:1px solid #b0c4f8}
+.s3{background:var(--green-bg);color:var(--green);border:1px solid rgba(76,175,125,.3)}
+.mini-label{font-size:.68rem;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;display:block}
+.peca-row{display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem}
+.peca-row input{flex:1;padding:.65rem .75rem;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none}
+.peca-rm{cursor:pointer;color:var(--alert);font-size:1rem;padding:.3rem .5rem;flex-shrink:0}
+.btn-add-mini{width:100%;padding:.6rem;background:var(--rose-bg);color:var(--rose-dk);border:1.5px dashed var(--rose-lt);border-radius:10px;font-size:.78rem;font-weight:600;cursor:pointer;margin-bottom:.9rem;font-family:'DM Sans',sans-serif}
+.ensaio-block{background:var(--slate);border-radius:14px;padding:1rem 1rem .2rem;margin-bottom:.8rem}
+.ensaio-block .sdiv{color:var(--rose-lt);border-color:rgba(255,255,255,.15)}
+.ensaio-block .mini-label{color:rgba(255,255,255,.5)}
+.ensaio-block .field label{color:rgba(255,255,255,.5)}
+.ensaio-block .field input,.ensaio-block .field select,.ensaio-block .field textarea{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff}
+.ensaio-block .peca-row input{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff}
+.ensaio-block .btn-add-mini{background:rgba(255,255,255,.08);color:var(--rose-lt);border-color:rgba(255,255,255,.3)}
+.ensaio-block .pag-calc{background:rgba(255,255,255,.06)}
 .chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.55rem}
 .chip{background:var(--rose-bg);border-radius:6px;padding:.18rem .5rem;font-size:.68rem;color:var(--rose-dk);display:inline-flex;align-items:center;gap:.2rem}
 .chip-link{background:#f0f4ff;color:#3050bb;border:1px solid #b0c4f8;cursor:pointer}
@@ -182,9 +199,9 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
     <div class="topbar">
       <div class="brand">
         <div class="brand-icon">SD</div>
-        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Visitantes</div></div>
+        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Ações de Debutante</div></div>
       </div>
-      <button class="btn-add" onclick="abrirMV()">+ Registrar</button>
+      <button class="btn-add" onclick="abrirMV()">+ Registro</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="stat-n" id="vst-total">0</div><div class="stat-l">Total</div></div>
@@ -196,9 +213,9 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
     </div>
     <div class="filtro-panel" id="filtro-panel">
       <button class="fb active" onclick="filtrarV('todos',this)">Todos</button>
-      <button class="fb" onclick="filtrarV('0',this)">Não fechou</button>
       <button class="fb" onclick="filtrarV('1',this)">Assinou sem pagar</button>
       <button class="fb" onclick="filtrarV('2',this)">Aguardando retorno</button>
+      <button class="fb" onclick="filtrarV('0',this)">Não fechou</button>
     </div>
     <div class="lista" id="lista-v"></div>
   </div>
@@ -223,20 +240,10 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
     <div class="topbar">
       <div class="brand">
         <div class="brand-icon">SD</div>
-        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Contratos</div></div>
+        <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Clientes</div></div>
       </div>
     </div>
     <div class="cont-wrap">
-      <div class="ia-area" onclick="document.getElementById('ia-input').click()">
-        <div class="ia-icon">📄✨</div>
-        <div class="ia-title">Ler contrato com IA</div>
-        <div class="ia-sub">Tire foto do contrato — a IA cria a ficha automaticamente</div>
-        <input type="file" id="ia-input" style="display:none" accept="image/*" capture="environment" onchange="lerContrato(event)"/>
-      </div>
-      <div class="ia-loading" id="ia-loading">
-        <div class="spinner"></div>
-        <p>Lendo contrato com IA...</p>
-      </div>
       <div id="lista-c"></div>
     </div>
   </div>
@@ -246,34 +253,94 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 <nav class="bnav">
   <button class="ntab active" onclick="irPara('visitantes',this)"><span class="ni">👥</span><span class="nl">Visitantes</span></button>
   <button class="ntab" onclick="irPara('catalogo',this)"><span class="ni">👗</span><span class="nl">Catálogo</span></button>
-  <button class="ntab" onclick="irPara('contratos',this)"><span class="ni">📄</span><span class="nl">Contratos</span></button>
+  <button class="ntab" onclick="irPara('contratos',this)"><span class="ni">📄</span><span class="nl">Clientes</span></button>
 </nav>
 
 <!-- MODAL VISITANTE -->
 <div class="ov" id="ov-v" onclick="fecharOv('ov-v',event)">
   <div class="modal">
     <div class="m-handle"></div>
-    <div class="m-title" id="mv-titulo">Nova Visita</div>
-    <div class="field"><label>Nome</label><input id="mv-nome" type="text" placeholder="Nome da visitante"/></div>
+    <div class="m-title" id="mv-titulo">Novo Registro</div>
+    <div class="field"><label>Nome do responsável</label><input id="mv-nome" type="text" placeholder="Nome da mãe / responsável"/></div>
+    <div class="field"><label>Nome da debutante</label><input id="mv-deb" type="text" placeholder="Nome da debutante"/></div>
     <div class="field"><label>Telefone / WhatsApp</label><input id="mv-tel" type="tel" placeholder="(32) 99999-9999"/></div>
-    <div class="frow">
-      <div class="field"><label>Data do evento</label><input id="mv-data" type="date"/></div>
-      <div class="field"><label>Status</label>
-        <select id="mv-status">
-          <option value="0">Não fechou</option>
-          <option value="1">Assinou sem pagar</option>
-          <option value="2">Aguardando retorno</option>
-        </select>
+    <div class="field"><label>Data da festa</label><input id="mv-data" type="date"/></div>
+    <div class="field"><label>Status</label>
+      <select id="mv-status" onchange="toggleFechado()">
+        <option value="3">Fechou</option>
+        <option value="1">Assinou sem pagar</option>
+        <option value="2">Aguardando retorno</option>
+        <option value="0">Não fechou</option>
+      </select>
+    </div>
+
+    <div class="sdiv">🔎 Triagem</div>
+    <div class="field"><label>Como conheceu a loja?</label>
+      <select id="mv-triagem" onchange="toggleTriagemOutro()">
+        <option value="">Selecione...</option>
+        <option>Indicação</option>
+        <option>Anúncio</option>
+        <option>Instagram</option>
+        <option>Porta da loja</option>
+        <option>Outro</option>
+      </select>
+    </div>
+    <div class="field" id="mv-triagem-outro-wrap" style="display:none"><label>Qual?</label><input id="mv-triagem-outro" type="text" placeholder="De onde veio"/></div>
+
+    <div id="mv-simples">
+      <div class="field">
+        <label>Código(s) do vestido experimentado</label>
+        <input id="mv-vestido" type="text" placeholder="Ex: 032, 018"/>
+        <small>Separe por vírgula. Linka com o catálogo.</small>
+      </div>
+      <div class="field"><label>Cor preferida</label><input id="mv-cor" type="text" placeholder="Rosa, azul, branco..."/></div>
+      <div class="field"><label>Observações</label><textarea id="mv-obs" placeholder="Orçamento, preferências, motivo..."></textarea></div>
+    </div>
+
+    <div id="mv-cliente" style="display:none">
+      <div class="sdiv">🎉 Festa</div>
+      <label class="mini-label">Peças escolhidas para a festa</label>
+      <div id="pf-list"></div>
+      <button type="button" class="btn-add-mini" onclick="addPecaFesta()">+ Adicionar peça</button>
+
+      <div class="frow">
+        <div class="field"><label>Total (R$)</label><input id="mv-festa-total" type="number" placeholder="1200" oninput="calcFesta()"/></div>
+        <div class="field"><label>Pago (R$)</label><input id="mv-festa-pago" type="number" placeholder="400" oninput="calcFesta()"/></div>
+      </div>
+      <div class="pag-calc" id="festa-pag-calc">
+        <div class="pag-row"><span>Total</span><span id="pf-total-disp"></span></div>
+        <div class="pag-row"><span>Pago</span><span id="pf-pago-disp"></span></div>
+        <div class="pag-row" id="pf-row"><span id="pf-label">Restante a pagar</span><span id="pf-restante-disp"></span></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="mv-festa-obs" placeholder="Outras informações sobre a festa..."></textarea></div>
+
+      <label class="mini-label">Provas da festa</label>
+      <div id="prf-list"></div>
+      <button type="button" class="btn-add-mini" onclick="addProvaFesta()">+ Adicionar prova</button>
+
+      <div class="ensaio-block">
+        <div class="sdiv">💃 Ensaio</div>
+        <div class="field"><label>Data do ensaio</label><input id="mv-ensaio-data" type="date"/></div>
+        <label class="mini-label">Peças escolhidas para o ensaio</label>
+        <div id="pe-list"></div>
+        <button type="button" class="btn-add-mini" onclick="addPecaEnsaio()">+ Adicionar peça</button>
+        <div class="field"><label>Observações</label><textarea id="mv-ensaio-obs" placeholder="Outras informações sobre o ensaio..."></textarea></div>
+        <div class="frow">
+          <div class="field"><label>Total do ensaio (R$)</label><input id="mv-ensaio-total" type="number" placeholder="300" oninput="calcEnsaio()"/></div>
+          <div class="field"><label>Pago (R$)</label><input id="mv-ensaio-pago" type="number" placeholder="100" oninput="calcEnsaio()"/></div>
+        </div>
+        <div class="pag-calc" id="ensaio-pag-calc">
+          <div class="pag-row"><span>Total</span><span id="pe-total-disp"></span></div>
+          <div class="pag-row"><span>Pago</span><span id="pe-pago-disp"></span></div>
+          <div class="pag-row" id="pe-row"><span id="pe-label">Restante a pagar</span><span id="pe-restante-disp"></span></div>
+        </div>
+        <label class="mini-label">Provas do ensaio</label>
+        <div id="pre-list"></div>
+        <button type="button" class="btn-add-mini" onclick="addProvaEnsaio()">+ Adicionar prova</button>
       </div>
     </div>
-    <div class="field">
-      <label>Código(s) do vestido experimentado</label>
-      <input id="mv-vestido" type="text" placeholder="Ex: 032, 018"/>
-      <small>Separe por vírgula. Linka com o catálogo.</small>
-    </div>
-    <div class="field"><label>Cor preferida</label><input id="mv-cor" type="text" placeholder="Rosa, azul, branco..."/></div>
-    <div class="field"><label>Observações</label><textarea id="mv-obs" placeholder="Orçamento, preferências, motivo..."></textarea></div>
-    <button class="btn-save" onclick="salvarV()">Salvar visita</button>
+
+    <button class="btn-save" onclick="salvarV()">Salvar registro</button>
     <button class="btn-cancel" onclick="fecharOv('ov-v')">Cancelar</button>
   </div>
 </div>
@@ -306,12 +373,20 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
       <div class="field"><label>Localização</label>
         <select id="mp-loc">
           <option>Na loja</option>
-          <option>Costureira</option>
+          <option>Confecção</option>
           <option>Lavanderia</option>
           <option>Ensaio</option>
           <option>Festa</option>
         </select>
       </div>
+    </div>
+    <div class="field"><label>Composição da peça</label>
+      <select id="mp-composicao">
+        <option value="">Selecione...</option>
+        <option>1 em 1</option>
+        <option>2 em 1</option>
+        <option>3 em 1</option>
+      </select>
     </div>
     <div class="field"><label>Estado</label>
       <select id="mp-estado">
@@ -325,62 +400,6 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
   </div>
 </div>
 
-<!-- MODAL CONTRATO -->
-<div class="ov" id="ov-c" onclick="fecharOv('ov-c',event)">
-  <div class="modal">
-    <div class="m-handle"></div>
-    <div class="m-title" id="mc-titulo">Ficha da Cliente</div>
-    <div class="sdiv">👤 Identificação</div>
-    <div class="field"><label>Nome do responsável</label><input id="mc-resp" type="text" placeholder="Quem assinou o contrato"/></div>
-    <div class="field"><label>Nome da debutante</label><input id="mc-deb" type="text" placeholder="Nome da debutante"/></div>
-    <div class="field"><label>Telefone / WhatsApp</label><input id="mc-tel" type="tel" placeholder="(32) 99999-9999"/></div>
-    <div class="sdiv">🎉 Evento</div>
-    <div class="frow">
-      <div class="field"><label>Data do evento</label><input id="mc-data" type="date"/></div>
-      <div class="field"><label>Tipo</label>
-        <select id="mc-tipo">
-          <option>Festa 15 anos</option>
-          <option>Ensaio</option>
-          <option>Dança</option>
-          <option>Outro</option>
-        </select>
-      </div>
-    </div>
-    <div class="sdiv">👗 Vestido principal</div>
-    <div class="field">
-      <label>Código do vestido</label>
-      <input id="mc-cod" type="text" placeholder="Ex: 032"/>
-      <small>Linka automaticamente com o catálogo</small>
-    </div>
-    <div class="field"><label>Primeira locação?</label>
-      <select id="mc-primloc">
-        <option value="nao">Não</option>
-        <option value="sim">Sim — primeira locação</option>
-      </select>
-    </div>
-    <div class="sdiv">💃 Vestidos de ensaio</div>
-    <div class="ens-add">
-      <div class="field" style="margin:0"><label>Código</label><input id="ens-cod" type="text" placeholder="032"/></div>
-      <div class="field" style="margin:0"><label>Data</label><input id="ens-data" type="date"/></div>
-      <button onclick="addEnsaio()">+ Add</button>
-    </div>
-    <div class="ens-prev" id="ens-prev"></div>
-    <div class="sdiv">💰 Pagamento</div>
-    <div class="frow">
-      <div class="field"><label>Valor total (R$)</label><input id="mc-total" type="number" placeholder="1200" oninput="calcSaldo()"/></div>
-      <div class="field"><label>Valor pago (R$)</label><input id="mc-pago" type="number" placeholder="400" oninput="calcSaldo()"/></div>
-    </div>
-    <div class="pag-calc" id="pag-calc">
-      <div class="pag-row"><span>Total</span><span id="pc-total"></span></div>
-      <div class="pag-row"><span>Pago</span><span id="pc-pago"></span></div>
-      <div class="pag-row" id="pc-row"><span id="pc-label">Saldo restante</span><span id="pc-saldo"></span></div>
-    </div>
-    <div class="field"><label>Observações</label><textarea id="mc-obs" placeholder="Outras informações..."></textarea></div>
-    <button class="btn-save" onclick="salvarC()">Confirmar e salvar ficha</button>
-    <button class="btn-cancel" onclick="fecharOv('ov-c')">Cancelar</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -389,20 +408,20 @@ var SUPA_URL = 'https://yjxqxhzevfdgobnocltg.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeHF4aHpldmZkZ29ibm9jbHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ4NjMsImV4cCI6MjA5NTIxMDg2M30.pDnLZc_yn4uAfEPPq6fWoJvT_YkoQtO8A2JUIM1PC80';
 var db = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-var V = [], P = [], C = [], ensTmp = [];
-var vFiltro = 'todos', vEd = null, pEd = null, cEd = null;
-var SL = ['Não fechou', 'Assinou sem pagar', 'Aguardando retorno'];
-var SLOC = {'Na loja':'🏪','Costureira':'🧵','Lavanderia':'🫧','Ensaio':'💃','Festa':'🎉'};
+var V = [], P = [];
+var vFiltro = 'todos', vEd = null, pEd = null;
+var pecasFestaTmp = [], pecasEnsaioTmp = [], provasFestaTmp = [], provasEnsaioTmp = [];
+var SL = ['Não fechou', 'Assinou sem pagar', 'Aguardando retorno', 'Fechou'];
+var SLOC = {'Na loja':'🏪','Confecção':'🧵','Lavanderia':'🫧','Ensaio':'💃','Festa':'🎉'};
 
 // ── INIT ──
 async function init() {
   try {
-    await Promise.all([loadV(), loadP(), loadC()]);
+    await Promise.all([loadV(), loadP()]);
     // Realtime
     db.channel('changes')
       .on('postgres_changes', {event:'*', schema:'public', table:'visitantes'}, function() { loadV(); })
       .on('postgres_changes', {event:'*', schema:'public', table:'pecas'}, function() { loadP(); })
-      .on('postgres_changes', {event:'*', schema:'public', table:'contratos'}, function() { loadC(); })
       .subscribe();
   } catch(e) {
     toast('⚠️ Erro de conexão');
@@ -413,17 +432,19 @@ async function init() {
 async function loadV() {
   var res = await db.from('visitantes').select('*').order('ts', {ascending: false});
   if (res.error) { toast('⚠️ Erro ao carregar visitantes: ' + res.error.message); console.error('loadV', res.error); return; }
-  V = res.data || []; rV();
+  V = res.data || []; rV(); rC();
 }
 async function loadP() {
   var res = await db.from('pecas').select('*').order('ts', {ascending: false});
   if (res.error) { toast('⚠️ Erro ao carregar catálogo: ' + res.error.message); console.error('loadP', res.error); return; }
   P = res.data || []; rP();
 }
-async function loadC() {
-  var res = await db.from('contratos').select('*').order('ts', {ascending: false});
-  if (res.error) { toast('⚠️ Erro ao carregar contratos: ' + res.error.message); console.error('loadC', res.error); return; }
-  C = res.data || []; rC();
+function locDisplay(loc){ return loc==='Costureira' ? 'Confecção' : (loc||'Na loja'); }
+function findPeca(cod){
+  if(!cod) return null;
+  var c=cod.trim().toLowerCase();
+  for(var k=0;k<P.length;k++){ if(P[k].cod.trim().toLowerCase()===c) return P[k]; }
+  return null;
 }
 
 // ── NAV ──
@@ -436,15 +457,16 @@ function irPara(pg, btn) {
   btn.classList.add('active');
 }
 
-// ── VISITANTES ──
+// ── VISITANTES (status ≠ Fechou) ──
 function rV() {
+  var open = V.filter(function(v){ return v.status !== 3; });
   var l = document.getElementById('lista-v');
-  var fs = vFiltro === 'todos' ? V.slice() : V.filter(function(v) { return String(v.status) === vFiltro; });
-  document.getElementById('vst-total').textContent = V.length;
-  document.getElementById('vst-pend').textContent = V.filter(function(v) { return v.status < 2; }).length;
-  document.getElementById('vst-ret').textContent = V.filter(function(v) { return v.status == 2; }).length;
+  var fs = vFiltro === 'todos' ? open.slice() : open.filter(function(v) { return String(v.status) === vFiltro; });
+  document.getElementById('vst-total').textContent = open.length;
+  document.getElementById('vst-pend').textContent = open.filter(function(v) { return v.status === 0 || v.status === 1; }).length;
+  document.getElementById('vst-ret').textContent = open.filter(function(v) { return v.status == 2; }).length;
   if (!fs.length) {
-    l.innerHTML = '<div class="empty"><div class="empty-icon">🦋</div><p>' + (vFiltro === 'todos' ? 'Nenhuma visita ainda.<br>Toque em <strong>+ Registrar</strong>.' : 'Nenhuma visita com esse status.') + '</p></div>';
+    l.innerHTML = '<div class="empty"><div class="empty-icon">🦋</div><p>' + (vFiltro === 'todos' ? 'Nenhuma visita ainda.<br>Toque em <strong>+ Registro</strong>.' : 'Nenhuma visita com esse status.') + '</p></div>';
     return;
   }
   var html = '';
@@ -454,8 +476,7 @@ function rV() {
     var chipsHtml = '';
     for (var j = 0; j < cods.length; j++) {
       var cod = cods[j].trim(); if (!cod) continue;
-      var peca = null;
-      for (var k = 0; k < P.length; k++) { if (P[k].cod.trim().toLowerCase() === cod.toLowerCase()) { peca = P[k]; break; } }
+      var peca = findPeca(cod);
       chipsHtml += peca
         ? '<span class="chip chip-link" onclick="irParaPeca(\'' + peca.id + '\')">🔗 #' + cod + (peca.cor ? ' — ' + peca.cor : '') + '</span>'
         : '<span class="chip">👗 #' + cod + '</span>';
@@ -463,7 +484,7 @@ function rV() {
     if (v.cor) chipsHtml += '<span class="chip">🎨 ' + v.cor + '</span>';
     var wppHtml = v.tel ? '<a class="btn-wpp" href="https://wa.me/55' + v.tel.replace(/\D/g,'') + '" target="_blank">💬 WhatsApp</a>' : '<span style="flex:1;text-align:center;font-size:.72rem;color:var(--muted)">Sem telefone</span>';
     html += '<div class="card">';
-    html += '<div class="card-top"><div><div class="card-nome">' + (v.nome||'—') + '</div><div class="card-data">' + (v.data_evento ? '🎉 '+fd(v.data_evento)+' · ' : '') + fts(v.ts) + '</div></div>';
+    html += '<div class="card-top"><div><div class="card-nome">' + (v.nome||'—') + '</div>' + (v.debutante ? '<div class="card-data">👑 '+v.debutante+'</div>' : '') + '<div class="card-data">' + (v.data_evento ? '🎉 '+fd(v.data_evento)+' · ' : '') + fts(v.ts) + '</div></div>';
     html += '<span class="sbadge s' + v.status + '">' + SL[v.status] + '</span></div>';
     if (chipsHtml) html += '<div class="chips">' + chipsHtml + '</div>';
     if (v.obs) html += '<div class="card-obs">"' + v.obs + '"</div>';
@@ -475,24 +496,128 @@ function rV() {
   l.innerHTML = html;
 }
 
+function toggleFechado() {
+  var isFechou = document.getElementById('mv-status').value === '3';
+  document.getElementById('mv-simples').style.display = isFechou ? 'none' : 'block';
+  document.getElementById('mv-cliente').style.display = isFechou ? 'block' : 'none';
+}
+function toggleTriagemOutro() {
+  var v = document.getElementById('mv-triagem').value;
+  document.getElementById('mv-triagem-outro-wrap').style.display = v === 'Outro' ? 'flex' : 'none';
+}
+
+// listas dinâmicas: peças e provas
+function rPecasFesta(){ var l=document.getElementById('pf-list'); var h=''; for(var i=0;i<pecasFestaTmp.length;i++){ h+='<div class="peca-row"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasFestaTmp[i]||'')+'" oninput="pecasFestaTmp['+i+']=this.value"/><span class="peca-rm" onclick="remPecaFesta('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
+function addPecaFesta(){ pecasFestaTmp.push(''); rPecasFesta(); }
+function remPecaFesta(i){ pecasFestaTmp.splice(i,1); rPecasFesta(); }
+
+function rPecasEnsaio(){ var l=document.getElementById('pe-list'); var h=''; for(var i=0;i<pecasEnsaioTmp.length;i++){ h+='<div class="peca-row"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasEnsaioTmp[i]||'')+'" oninput="pecasEnsaioTmp['+i+']=this.value"/><span class="peca-rm" onclick="remPecaEnsaio('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
+function addPecaEnsaio(){ pecasEnsaioTmp.push(''); rPecasEnsaio(); }
+function remPecaEnsaio(i){ pecasEnsaioTmp.splice(i,1); rPecasEnsaio(); }
+
+function rProvasFesta(){ var l=document.getElementById('prf-list'); var h=''; for(var i=0;i<provasFestaTmp.length;i++){ h+='<div class="peca-row"><span style="font-size:.72rem;color:var(--muted);white-space:nowrap">Prova '+(i+1)+'</span><input type="date" value="'+(provasFestaTmp[i]||'')+'" oninput="provasFestaTmp['+i+']=this.value"/><span class="peca-rm" onclick="remProvaFesta('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">Nenhuma prova agendada.</div>'; }
+function addProvaFesta(){ provasFestaTmp.push(''); rProvasFesta(); }
+function remProvaFesta(i){ provasFestaTmp.splice(i,1); rProvasFesta(); }
+
+function rProvasEnsaio(){ var l=document.getElementById('pre-list'); var h=''; for(var i=0;i<provasEnsaioTmp.length;i++){ h+='<div class="peca-row"><span style="font-size:.72rem;color:rgba(255,255,255,.5);white-space:nowrap">Prova '+(i+1)+'</span><input type="date" value="'+(provasEnsaioTmp[i]||'')+'" oninput="provasEnsaioTmp['+i+']=this.value"/><span class="peca-rm" onclick="remProvaEnsaio('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:.5rem">Nenhuma prova agendada.</div>'; }
+function addProvaEnsaio(){ provasEnsaioTmp.push(''); rProvasEnsaio(); }
+function remProvaEnsaio(i){ provasEnsaioTmp.splice(i,1); rProvasEnsaio(); }
+
+function calcFesta() {
+  var total=parseFloat(document.getElementById('mv-festa-total').value)||0;
+  var pago=parseFloat(document.getElementById('mv-festa-pago').value)||0;
+  var box=document.getElementById('festa-pag-calc');
+  if(total<=0){box.style.display='none';return;}
+  box.style.display='block';
+  var restante=total-pago;
+  document.getElementById('pf-total-disp').textContent='R$ '+total.toFixed(2).replace('.',',');
+  document.getElementById('pf-pago-disp').textContent='R$ '+pago.toFixed(2).replace('.',',');
+  document.getElementById('pf-restante-disp').textContent='R$ '+Math.abs(restante).toFixed(2).replace('.',',');
+  var row=document.getElementById('pf-row');
+  row.className='pag-row '+(restante<=0?'pag-ok':'pag-neg');
+  document.getElementById('pf-label').textContent=restante<=0?'✅ Quitado':'Restante a pagar';
+}
+function calcEnsaio() {
+  var total=parseFloat(document.getElementById('mv-ensaio-total').value)||0;
+  var pago=parseFloat(document.getElementById('mv-ensaio-pago').value)||0;
+  var box=document.getElementById('ensaio-pag-calc');
+  if(total<=0){box.style.display='none';return;}
+  box.style.display='block';
+  var restante=total-pago;
+  document.getElementById('pe-total-disp').textContent='R$ '+total.toFixed(2).replace('.',',');
+  document.getElementById('pe-pago-disp').textContent='R$ '+pago.toFixed(2).replace('.',',');
+  document.getElementById('pe-restante-disp').textContent='R$ '+Math.abs(restante).toFixed(2).replace('.',',');
+  var row=document.getElementById('pe-row');
+  row.className='pag-row '+(restante<=0?'pag-ok':'pag-neg');
+  document.getElementById('pe-label').textContent=restante<=0?'✅ Quitado':'Restante a pagar';
+}
+
 function abrirMV(id) {
   vEd = id || null;
-  document.getElementById('mv-titulo').textContent = id ? 'Editar Visita' : 'Nova Visita';
+  document.getElementById('mv-titulo').textContent = id ? 'Editar Registro' : 'Novo Registro';
   var v = id ? (function(){ for(var i=0;i<V.length;i++) if(V[i].id===id) return V[i]; return {}; })() : {};
   document.getElementById('mv-nome').value = v.nome || '';
+  document.getElementById('mv-deb').value = v.debutante || '';
   document.getElementById('mv-tel').value = v.tel || '';
   document.getElementById('mv-data').value = v.data_evento || '';
-  document.getElementById('mv-status').value = v.status || '0';
+  document.getElementById('mv-status').value = (v.status!==undefined && v.status!==null) ? String(v.status) : '0';
+  document.getElementById('mv-triagem').value = v.triagem_origem || '';
+  document.getElementById('mv-triagem-outro').value = v.triagem_outro || '';
   document.getElementById('mv-vestido').value = v.vestido || '';
   document.getElementById('mv-cor').value = v.cor || '';
   document.getElementById('mv-obs').value = v.obs || '';
+
+  pecasFestaTmp = Array.isArray(v.pecas_festa) ? v.pecas_festa.slice() : [];
+  pecasEnsaioTmp = Array.isArray(v.pecas_ensaio) ? v.pecas_ensaio.slice() : [];
+  provasFestaTmp = Array.isArray(v.provas_festa) ? v.provas_festa.slice() : [];
+  provasEnsaioTmp = Array.isArray(v.provas_ensaio) ? v.provas_ensaio.slice() : [];
+  rPecasFesta(); rPecasEnsaio(); rProvasFesta(); rProvasEnsaio();
+
+  document.getElementById('mv-festa-total').value = v.festa_total || '';
+  document.getElementById('mv-festa-pago').value = v.festa_pago || '';
+  document.getElementById('mv-festa-obs').value = v.obs || '';
+  document.getElementById('mv-ensaio-data').value = v.ensaio_data || '';
+  document.getElementById('mv-ensaio-obs').value = v.ensaio_obs || '';
+  document.getElementById('mv-ensaio-total').value = v.ensaio_total || '';
+  document.getElementById('mv-ensaio-pago').value = v.ensaio_pago || '';
+
+  toggleTriagemOutro();
+  toggleFechado();
+  calcFesta(); calcEnsaio();
   document.getElementById('ov-v').classList.add('open');
 }
 
 async function salvarV() {
   var nome = document.getElementById('mv-nome').value.trim();
-  if (!nome) { toast('⚠️ Informe o nome'); return; }
-  var d = { nome:nome, tel:document.getElementById('mv-tel').value.trim(), data_evento:document.getElementById('mv-data').value, status:parseInt(document.getElementById('mv-status').value), vestido:document.getElementById('mv-vestido').value.trim(), cor:document.getElementById('mv-cor').value.trim(), obs:document.getElementById('mv-obs').value.trim() };
+  if (!nome) { toast('⚠️ Informe o nome do responsável'); return; }
+  var status = parseInt(document.getElementById('mv-status').value);
+  var triagem = document.getElementById('mv-triagem').value;
+  var d = {
+    nome:nome,
+    debutante:document.getElementById('mv-deb').value.trim(),
+    tel:document.getElementById('mv-tel').value.trim(),
+    data_evento:document.getElementById('mv-data').value,
+    status:status,
+    triagem_origem:triagem,
+    triagem_outro: triagem==='Outro' ? document.getElementById('mv-triagem-outro').value.trim() : ''
+  };
+  if (status === 3) {
+    d.pecas_festa = pecasFestaTmp.filter(function(c){ return c && c.trim(); });
+    d.festa_total = parseFloat(document.getElementById('mv-festa-total').value)||0;
+    d.festa_pago = parseFloat(document.getElementById('mv-festa-pago').value)||0;
+    d.obs = document.getElementById('mv-festa-obs').value.trim();
+    d.provas_festa = provasFestaTmp.filter(function(x){ return x; });
+    d.ensaio_data = document.getElementById('mv-ensaio-data').value;
+    d.pecas_ensaio = pecasEnsaioTmp.filter(function(c){ return c && c.trim(); });
+    d.ensaio_obs = document.getElementById('mv-ensaio-obs').value.trim();
+    d.ensaio_total = parseFloat(document.getElementById('mv-ensaio-total').value)||0;
+    d.ensaio_pago = parseFloat(document.getElementById('mv-ensaio-pago').value)||0;
+    d.provas_ensaio = provasEnsaioTmp.filter(function(x){ return x; });
+  } else {
+    d.vestido = document.getElementById('mv-vestido').value.trim();
+    d.cor = document.getElementById('mv-cor').value.trim();
+    d.obs = document.getElementById('mv-obs').value.trim();
+  }
   var res;
   if (vEd) {
     res = await db.from('visitantes').update(d).eq('id', vEd);
@@ -501,11 +626,11 @@ async function salvarV() {
     res = await db.from('visitantes').insert(d);
   }
   if (res.error) { toast('⚠️ Erro ao salvar: ' + res.error.message); console.error('salvarV', res.error); return; }
-  fecharOv('ov-v'); toast('✅ Visita salva!'); await loadV();
+  fecharOv('ov-v'); toast(status===3 ? '✅ Cliente salva!' : '✅ Visita salva!'); await loadV();
 }
 
 async function delV(id) {
-  if (!confirm('Remover esta visita?')) return;
+  if (!confirm('Remover este registro?')) return;
   var res = await db.from('visitantes').delete().eq('id', id);
   if (res.error) { toast('⚠️ Erro ao remover: ' + res.error.message); console.error('delV', res.error); return; }
   toast('🗑️ Removida'); await loadV();
@@ -546,7 +671,7 @@ function rP() {
     html += '<div class="peca-foto" onclick="document.getElementById(\'pf-'+p.id+'\').click()">'+(p.foto?'<img src="'+p.foto+'" alt="foto"/>'  :'👗')+'<input type="file" id="pf-'+p.id+'" style="display:none" accept="image/*" onchange="trocarFoto(event,\''+p.id+'\')" /></div>';
     html += '<div class="peca-info"><div class="peca-cod">#'+p.cod+'</div><div class="peca-tipo">'+(p.tipo||'—')+' · '+(p.cor||'—')+'</div>';
     html += '<span class="peca-estado '+(isAlerta?'pe-def':'pe-ok')+'">'+(isAlerta?'⚠️ Com defeito':'✅ Perfeito estado')+'</span>';
-    html += '<div class="peca-loc">'+(SLOC[p.loc]||'🏪')+' '+(p.loc||'Na loja')+'</div>';
+    html += '<div class="peca-loc">'+(SLOC[locDisplay(p.loc)]||'🏪')+' '+locDisplay(p.loc)+(p.composicao?' · '+p.composicao:'')+'</div>';
     html += '<div class="peca-alug">🔁 '+(p.loc_count||0)+'× alugado</div>';
     if (p.obs && isAlerta) html += '<div class="peca-obs-def">⚠️ '+p.obs+'</div>';
     html += '</div><div class="datas-panel" id="dp-'+p.id+'">'+datasHtml+'<div class="add-data-row"><input type="date" id="nd-'+p.id+'"/><button onclick="addData(\''+p.id+'\')">+ Data</button></div></div>';
@@ -562,7 +687,8 @@ function abrirMP(id) {
   document.getElementById('mp-cod').value = p.cod||'';
   document.getElementById('mp-tipo').value = p.tipo||'Recepção';
   document.getElementById('mp-cor').value = p.cor||'';
-  document.getElementById('mp-loc').value = p.loc||'Na loja';
+  document.getElementById('mp-loc').value = locDisplay(p.loc) || 'Na loja';
+  document.getElementById('mp-composicao').value = p.composicao || '';
   document.getElementById('mp-estado').value = p.estado||'ok';
   document.getElementById('mp-obs').value = p.obs||'';
   var prev = document.getElementById('mp-foto-prev');
@@ -575,7 +701,7 @@ async function salvarP() {
   var cod = document.getElementById('mp-cod').value.trim();
   if (!cod) { toast('⚠️ Informe o código'); return; }
   var prev = document.getElementById('mp-foto-prev');
-  var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
+  var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, composicao:document.getElementById('mp-composicao').value, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
   var res;
   if (pEd) {
     res = await db.from('pecas').update(d).eq('id', pEd);
@@ -621,147 +747,63 @@ async function remData(id, idx) {
   await loadP();
 }
 
-// ── CONTRATOS ──
-function calcSaldo() {
-  var total=parseFloat(document.getElementById('mc-total').value)||0;
-  var pago=parseFloat(document.getElementById('mc-pago').value)||0;
-  var box=document.getElementById('pag-calc');
-  if(total<=0){box.style.display='none';return;}
-  box.style.display='block';
-  var saldo=total-pago;
-  document.getElementById('pc-total').textContent='R$ '+total.toFixed(2).replace('.',',');
-  document.getElementById('pc-pago').textContent='R$ '+pago.toFixed(2).replace('.',',');
-  document.getElementById('pc-saldo').textContent='R$ '+Math.abs(saldo).toFixed(2).replace('.',',');
-  var row=document.getElementById('pc-row');
-  row.className='pag-row '+(saldo<=0?'pag-ok':'pag-neg');
-  document.getElementById('pc-label').textContent=saldo<=0?'✅ Quitado':'Saldo restante';
-}
-function addEnsaio() {
-  var cod=document.getElementById('ens-cod').value.trim();
-  var data=document.getElementById('ens-data').value;
-  if(!cod||!data){toast('⚠️ Preencha código e data');return;}
-  ensTmp.push({cod:cod,data:data});
-  document.getElementById('ens-cod').value='';
-  document.getElementById('ens-data').value='';
-  rEnsTmp(); toast('💃 Ensaio adicionado');
-}
-function remEnsaio(i){ensTmp.splice(i,1);rEnsTmp();}
-function rEnsTmp() {
-  var html='';
-  for(var i=0;i<ensTmp.length;i++) html+='<div class="ep-item"><span>👗 #'+ensTmp[i].cod+' — 📅 '+fd(ensTmp[i].data)+'</span><span class="ep-rm" onclick="remEnsaio('+i+')">✕</span></div>';
-  document.getElementById('ens-prev').innerHTML=html;
-}
-
-async function lerContrato(e) {
-  var file=e.target.files[0]; if(!file) return; e.target.value='';
-  document.querySelector('.ia-area').style.display='none';
-  document.getElementById('ia-loading').style.display='block';
-  var b64=await toB64(file);
-  try {
-    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:'Analise este contrato de aluguel de vestido de debutante/festa. Retorne APENAS JSON puro sem markdown: {"responsavel":"","debutante":"","tel":"","dataEvento":"YYYY-MM-DD","codVestido":"","tipoEvento":"Festa 15 anos","valorTotal":"","valorPago":"","obs":""}'}]}]})});
-    var data=await res.json();
-    var txt=(data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:'{}';
-    var info={}; try{info=JSON.parse(txt.replace(/```json|```/g,'').trim());}catch(ex){info={};}
-    preencherC(info);
-  } catch(err) { toast('⚠️ Erro na IA. Preencha manualmente.'); preencherC({}); }
-  document.getElementById('ia-loading').style.display='none';
-  document.querySelector('.ia-area').style.display='block';
-}
-
-function preencherC(info) {
-  cEd=null; ensTmp=[];
-  document.getElementById('mc-titulo').textContent='Ficha da Cliente';
-  document.getElementById('mc-resp').value=info.responsavel||'';
-  document.getElementById('mc-deb').value=info.debutante||'';
-  document.getElementById('mc-tel').value=info.tel||'';
-  document.getElementById('mc-data').value=info.dataEvento||'';
-  document.getElementById('mc-cod').value=info.codVestido||'';
-  document.getElementById('mc-tipo').value=info.tipoEvento||'Festa 15 anos';
-  document.getElementById('mc-primloc').value='nao';
-  document.getElementById('mc-total').value=info.valorTotal||'';
-  document.getElementById('mc-pago').value=info.valorPago||'';
-  document.getElementById('mc-obs').value=info.obs||'';
-  rEnsTmp(); calcSaldo();
-  document.getElementById('ov-c').classList.add('open');
-}
-
-async function salvarC() {
-  var resp=document.getElementById('mc-resp').value.trim();
-  if(!resp){toast('⚠️ Informe o nome do responsável');return;}
-  var d={responsavel:resp,debutante:document.getElementById('mc-deb').value.trim(),tel:document.getElementById('mc-tel').value.trim(),data_evento:document.getElementById('mc-data').value,cod_vestido:document.getElementById('mc-cod').value.trim(),tipo_evento:document.getElementById('mc-tipo').value,primeira_loc:document.getElementById('mc-primloc').value,valor_total:document.getElementById('mc-total').value,valor_pago:document.getElementById('mc-pago').value,obs:document.getElementById('mc-obs').value.trim(),ensaios:ensTmp.slice()};
-  var res;
-  if(cEd){
-    res = await db.from('contratos').update(d).eq('id',cEd);
-  } else {
-    d.id=Date.now().toString(); d.ts=Date.now();
-    res = await db.from('contratos').insert(d);
-    if(!res.error && d.cod_vestido){
-      for(var i=0;i<P.length;i++){
-        if(P[i].cod.trim().toLowerCase()===d.cod_vestido.trim().toLowerCase()){
-          await db.from('pecas').update({loc_count:(P[i].loc_count||0)+1}).eq('id',P[i].id); break;
-        }
-      }
-    }
-  }
-  if (res.error) { toast('⚠️ Erro ao salvar: ' + res.error.message); console.error('salvarC', res.error); return; }
-  fecharOv('ov-c'); toast('✅ Ficha salva!'); await loadC(); await loadP();
-}
-
+// ── CLIENTES (status = Fechou) ──
 function rC() {
-  var l=document.getElementById('lista-c');
-  if(!C.length){l.innerHTML='<div class="empty"><div class="empty-icon">📄</div><p>Nenhum contrato ainda.<br>Use o botão acima para ler com IA.</p></div>';return;}
+  var Cf = V.filter(function(v){ return v.status === 3; });
+  Cf.sort(function(a,b){
+    var da=a.data_evento, db_=b.data_evento;
+    if(!da && !db_) return 0;
+    if(!da) return 1;
+    if(!db_) return -1;
+    return da < db_ ? -1 : (da > db_ ? 1 : 0);
+  });
+  var l = document.getElementById('lista-c');
+  if (!Cf.length) { l.innerHTML='<div class="empty"><div class="empty-icon">📄</div><p>Nenhuma cliente fechada ainda.<br>Quando um registro tiver status <strong>Fechou</strong>, aparece aqui.</p></div>'; return; }
   var html='';
-  for(var i=0;i<C.length;i++){
-    var c=C[i];
-    var peca=null;
-    if(c.cod_vestido){for(var k=0;k<P.length;k++){if(P[k].cod.trim().toLowerCase()===c.cod_vestido.trim().toLowerCase()){peca=P[k];break;}}}
-    var total=parseFloat(c.valor_total)||0;
-    var pago=parseFloat(c.valor_pago)||0;
-    var saldo=total>0?total-pago:null;
-    var ensaios=c.ensaios||[];
+  for (var i=0;i<Cf.length;i++) {
+    var c=Cf[i];
+    var festaTotal=parseFloat(c.festa_total)||0, festaPago=parseFloat(c.festa_pago)||0;
+    var festaRestante = festaTotal>0 ? festaTotal-festaPago : null;
+    var pecasF = Array.isArray(c.pecas_festa) ? c.pecas_festa : [];
+    var pecasE = Array.isArray(c.pecas_ensaio) ? c.pecas_ensaio : [];
     html+='<div class="cont-card">';
-    html+='<div class="cont-nome">'+c.responsavel+'</div>';
-    html+='<div class="cont-sub">'+(c.debutante?'👑 '+c.debutante+' · ':'')+( c.data_evento?'🎉 '+fd(c.data_evento):'Sem data')+'</div>';
-    html+='<div class="cont-chips"><span class="cc">'+(c.tipo_evento||'Evento')+'</span>';
-    if(c.cod_vestido){html+=peca?'<span class="cc cc-azul" onclick="irParaPeca(\''+peca.id+'\')">🔗 #'+c.cod_vestido+(peca.cor?' — '+peca.cor:'')+'</span>':'<span class="cc">👗 #'+c.cod_vestido+'</span>';}
-    if(c.primeira_loc==='sim') html+='<span class="cc cc-roxo">✨ 1ª locação</span>';
-    html+='</div>';
-    if(saldo!==null){var sq=saldo<=0;html+='<div class="saldo-box'+(sq?' ok':'')+'"><span class="saldo-label">'+(sq?'✅ Quitado':'⚠️ Saldo restante')+'</span><span class="saldo-val">R$ '+Math.abs(saldo).toFixed(2).replace('.',',')+'</span></div>';}
-    if(ensaios.length){html+='<div class="ensaios-sec"><div class="ensaios-title">💃 Vestidos de ensaio</div>';for(var j=0;j<ensaios.length;j++){var ep=null;for(var k=0;k<P.length;k++){if(P[k].cod.trim().toLowerCase()===ensaios[j].cod.toLowerCase()){ep=P[k];break;}}html+='<div class="ens-item">'+(ep?'<span style="cursor:pointer;color:#3050bb" onclick="irParaPeca(\''+ep.id+'\')">🔗 #'+ensaios[j].cod+'</span>':'👗 #'+ensaios[j].cod)+' · 📅 '+fd(ensaios[j].data)+'</div>';}html+='</div>';}
-    if(c.obs) html+='<div class="card-obs" style="margin-top:.45rem">"'+c.obs+'"</div>';
+    html+='<div class="cont-nome">'+(c.nome||'—')+'</div>';
+    html+='<div class="cont-sub">'+(c.debutante?'👑 '+c.debutante+' · ':'')+(c.data_evento?'🎉 '+fd(c.data_evento):'Sem data')+'</div>';
+    if (pecasF.length) {
+      html+='<div class="cont-chips">';
+      for (var j=0;j<pecasF.length;j++) {
+        var cod=pecasF[j]; if(!cod) continue;
+        var peca=findPeca(cod);
+        html+= peca ? '<span class="cc cc-azul" onclick="irParaPeca(\''+peca.id+'\')">🔗 #'+cod+(peca.cor?' — '+peca.cor:'')+'</span>' : '<span class="cc">👗 #'+cod+'</span>';
+      }
+      html+='</div>';
+    }
+    if (festaRestante!==null) {
+      var sq=festaRestante<=0;
+      html+='<div class="saldo-box'+(sq?' ok':'')+'"><span class="saldo-label">'+(sq?'✅ Festa quitada':'⚠️ Restante da festa')+'</span><span class="saldo-val">R$ '+Math.abs(festaRestante).toFixed(2).replace('.',',')+'</span></div>';
+    }
+    if (c.ensaio_data || pecasE.length) {
+      html+='<div class="ensaios-sec"><div class="ensaios-title">💃 Ensaio'+(c.ensaio_data?' · '+fd(c.ensaio_data):'')+'</div>';
+      for (var k=0;k<pecasE.length;k++) {
+        var cod2=pecasE[k]; if(!cod2) continue;
+        var p2=findPeca(cod2);
+        html+='<div class="ens-item">'+(p2?'<span style="cursor:pointer;color:#3050bb" onclick="irParaPeca(\''+p2.id+'\')">🔗 #'+cod2+'</span>':'👗 #'+cod2)+'</div>';
+      }
+      var ensT=parseFloat(c.ensaio_total)||0, ensP=parseFloat(c.ensaio_pago)||0;
+      if (ensT>0) {
+        var ensR=ensT-ensP, qe=ensR<=0;
+        html+='<div class="saldo-box'+(qe?' ok':'')+'" style="margin-top:.4rem"><span class="saldo-label">'+(qe?'✅ Ensaio quitado':'⚠️ Restante do ensaio')+'</span><span class="saldo-val">R$ '+Math.abs(ensR).toFixed(2).replace('.',',')+'</span></div>';
+      }
+      html+='</div>';
+    }
+    if (c.obs) html+='<div class="card-obs" style="margin-top:.45rem">"'+c.obs+'"</div>';
     html+='<div class="card-actions">';
-    if(c.tel) html+='<a class="btn-wpp" href="https://wa.me/55'+c.tel.replace(/\D/g,'') +'" target="_blank">💬 WhatsApp</a>';
-    html+='<button class="btn-ic" onclick="editarC(\''+c.id+'\')">✏️</button>';
-    html+='<button class="btn-ic btn-ic-del" onclick="delC(\''+c.id+'\')">🗑️</button>';
+    if (c.tel) html+='<a class="btn-wpp" href="https://wa.me/55'+c.tel.replace(/\D/g,'')+'" target="_blank">💬 WhatsApp</a>';
+    html+='<button class="btn-ic" onclick="abrirMV(\''+c.id+'\')">✏️</button>';
+    html+='<button class="btn-ic btn-ic-del" onclick="delV(\''+c.id+'\')">🗑️</button>';
     html+='</div></div>';
   }
-  l.innerHTML=html;
-}
-
-function editarC(id) {
-  cEd=id;
-  var c=null; for(var i=0;i<C.length;i++) if(C[i].id===id){c=C[i];break;}
-  ensTmp=(c.ensaios||[]).slice();
-  document.getElementById('mc-titulo').textContent='Editar Ficha';
-  document.getElementById('mc-resp').value=c.responsavel||'';
-  document.getElementById('mc-deb').value=c.debutante||'';
-  document.getElementById('mc-tel').value=c.tel||'';
-  document.getElementById('mc-data').value=c.data_evento||'';
-  document.getElementById('mc-cod').value=c.cod_vestido||'';
-  document.getElementById('mc-tipo').value=c.tipo_evento||'Festa 15 anos';
-  document.getElementById('mc-primloc').value=c.primeira_loc||'nao';
-  document.getElementById('mc-total').value=c.valor_total||'';
-  document.getElementById('mc-pago').value=c.valor_pago||'';
-  document.getElementById('mc-obs').value=c.obs||'';
-  rEnsTmp(); calcSaldo();
-  document.getElementById('ov-c').classList.add('open');
-}
-
-async function delC(id) {
-  if(!confirm('Remover esta ficha?')) return;
-  var res = await db.from('contratos').delete().eq('id',id);
-  if (res.error) { toast('⚠️ Erro ao remover: ' + res.error.message); console.error('delC', res.error); return; }
-  toast('🗑️ Removida'); await loadC();
+  l.innerHTML = html;
 }
 
 // ── UTILS ──
