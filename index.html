@@ -67,6 +67,10 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 .peca-row{display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem}
 .peca-row input{flex:1;padding:.65rem .75rem;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none}
 .peca-rm{cursor:pointer;color:var(--alert);font-size:1rem;padding:.3rem .5rem;flex-shrink:0}
+.peca-preview{font-size:.68rem;margin-top:.25rem;min-height:1em;color:var(--muted)}
+.peca-link{color:var(--rose-dk);cursor:pointer;font-weight:600}
+.ensaio-block .peca-preview{color:rgba(255,255,255,.45)}
+.ensaio-block .peca-link{color:var(--rose-lt)}
 .btn-add-mini{width:100%;padding:.6rem;background:var(--rose-bg);color:var(--rose-dk);border:1.5px dashed var(--rose-lt);border-radius:10px;font-size:.78rem;font-weight:600;cursor:pointer;margin-bottom:.9rem;font-family:'DM Sans',sans-serif}
 .ensaio-block{background:var(--slate);border-radius:14px;padding:1rem 1rem .2rem;margin-bottom:.8rem}
 .ensaio-block .sdiv{color:var(--rose-lt);border-color:rgba(255,255,255,.15)}
@@ -290,8 +294,9 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
     <div id="mv-simples">
       <div class="field">
         <label>Código(s) do vestido experimentado</label>
-        <input id="mv-vestido" type="text" placeholder="Ex: 032, 018"/>
+        <input id="mv-vestido" type="text" placeholder="Ex: 032, 018" oninput="showVestidoPreview()"/>
         <small>Separe por vírgula. Linka com o catálogo.</small>
+        <div class="peca-preview" id="mv-vestido-preview"></div>
       </div>
       <div class="field"><label>Cor preferida</label><input id="mv-cor" type="text" placeholder="Rosa, azul, branco..."/></div>
       <div class="field"><label>Observações</label><textarea id="mv-obs" placeholder="Orçamento, preferências, motivo..."></textarea></div>
@@ -388,6 +393,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
         <option>3 em 1</option>
       </select>
     </div>
+    <div class="field"><label>Preço (R$)</label><input id="mp-preco" type="number" placeholder="Ex: 800"/></div>
     <div class="field"><label>Estado</label>
       <select id="mp-estado">
         <option value="ok">✅ Perfeito estado</option>
@@ -445,6 +451,26 @@ function findPeca(cod){
   var c=cod.trim().toLowerCase();
   for(var k=0;k<P.length;k++){ if(P[k].cod.trim().toLowerCase()===c) return P[k]; }
   return null;
+}
+function pecaPreviewHtml(cod){
+  var c=(cod||'').trim();
+  if(!c) return '';
+  var p=findPeca(c);
+  if(p) return '<span class="peca-link" onclick="irParaPecaFecharModal(\''+p.id+'\')">🔗 '+(p.tipo||'Peça')+(p.cor?' · '+p.cor:'')+(p.preco?' · R$ '+parseFloat(p.preco).toFixed(2).replace('.',','):'')+'</span>';
+  return 'Código não encontrado no catálogo';
+}
+function updatePecaPreview(elId, cod){ var el=document.getElementById(elId); if(el) el.innerHTML=pecaPreviewHtml(cod); }
+function irParaPecaFecharModal(id){
+  document.getElementById('ov-v').classList.remove('open');
+  document.getElementById('ov-p').classList.remove('open');
+  setTimeout(function(){ irParaPeca(id); }, 50);
+}
+function showVestidoPreview(){
+  var raw=document.getElementById('mv-vestido').value;
+  var cods=raw.split(',');
+  var html='';
+  for(var i=0;i<cods.length;i++){ var c=cods[i].trim(); if(!c) continue; html+='<div>'+pecaPreviewHtml(c)+'</div>'; }
+  document.getElementById('mv-vestido-preview').innerHTML=html;
 }
 
 // ── NAV ──
@@ -507,11 +533,11 @@ function toggleTriagemOutro() {
 }
 
 // listas dinâmicas: peças e provas
-function rPecasFesta(){ var l=document.getElementById('pf-list'); var h=''; for(var i=0;i<pecasFestaTmp.length;i++){ h+='<div class="peca-row"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasFestaTmp[i]||'')+'" oninput="pecasFestaTmp['+i+']=this.value"/><span class="peca-rm" onclick="remPecaFesta('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
+function rPecasFesta(){ var l=document.getElementById('pf-list'); var h=''; for(var i=0;i<pecasFestaTmp.length;i++){ h+='<div class="peca-row"><div style="flex:1"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasFestaTmp[i]||'')+'" oninput="pecasFestaTmp['+i+']=this.value; updatePecaPreview(\'pf-prev-'+i+'\', this.value)"/><div class="peca-preview" id="pf-prev-'+i+'">'+pecaPreviewHtml(pecasFestaTmp[i])+'</div></div><span class="peca-rm" onclick="remPecaFesta('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
 function addPecaFesta(){ pecasFestaTmp.push(''); rPecasFesta(); }
 function remPecaFesta(i){ pecasFestaTmp.splice(i,1); rPecasFesta(); }
 
-function rPecasEnsaio(){ var l=document.getElementById('pe-list'); var h=''; for(var i=0;i<pecasEnsaioTmp.length;i++){ h+='<div class="peca-row"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasEnsaioTmp[i]||'')+'" oninput="pecasEnsaioTmp['+i+']=this.value"/><span class="peca-rm" onclick="remPecaEnsaio('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
+function rPecasEnsaio(){ var l=document.getElementById('pe-list'); var h=''; for(var i=0;i<pecasEnsaioTmp.length;i++){ h+='<div class="peca-row"><div style="flex:1"><input type="text" placeholder="Código (ex: 032)" value="'+(pecasEnsaioTmp[i]||'')+'" oninput="pecasEnsaioTmp['+i+']=this.value; updatePecaPreview(\'pe-prev-'+i+'\', this.value)"/><div class="peca-preview" id="pe-prev-'+i+'">'+pecaPreviewHtml(pecasEnsaioTmp[i])+'</div></div><span class="peca-rm" onclick="remPecaEnsaio('+i+')">✕</span></div>'; } l.innerHTML=h||'<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:.5rem">Nenhuma peça adicionada.</div>'; }
 function addPecaEnsaio(){ pecasEnsaioTmp.push(''); rPecasEnsaio(); }
 function remPecaEnsaio(i){ pecasEnsaioTmp.splice(i,1); rPecasEnsaio(); }
 
@@ -564,6 +590,7 @@ function abrirMV(id) {
   document.getElementById('mv-triagem').value = v.triagem_origem || '';
   document.getElementById('mv-triagem-outro').value = v.triagem_outro || '';
   document.getElementById('mv-vestido').value = v.vestido || '';
+  showVestidoPreview();
   document.getElementById('mv-cor').value = v.cor || '';
   document.getElementById('mv-obs').value = v.obs || '';
 
@@ -669,7 +696,7 @@ function rP() {
     html += '<div class="peca-card'+(isAlerta?' alerta':'')+'" id="pc-'+p.id+'">';
     if (isAlerta) html += '<div class="alerta-badge">⚠️ DEFEITO</div>';
     html += '<div class="peca-foto" onclick="document.getElementById(\'pf-'+p.id+'\').click()">'+(p.foto?'<img src="'+p.foto+'" alt="foto"/>'  :'👗')+'<input type="file" id="pf-'+p.id+'" style="display:none" accept="image/*" onchange="trocarFoto(event,\''+p.id+'\')" /></div>';
-    html += '<div class="peca-info"><div class="peca-cod">#'+p.cod+'</div><div class="peca-tipo">'+(p.tipo||'—')+' · '+(p.cor||'—')+'</div>';
+    html += '<div class="peca-info"><div class="peca-cod">#'+p.cod+(p.preco?' <span style="color:var(--rose);font-size:.8rem;font-weight:600">· R$ '+parseFloat(p.preco).toFixed(2).replace('.',',')+'</span>':'')+'</div><div class="peca-tipo">'+(p.tipo||'—')+' · '+(p.cor||'—')+'</div>';
     html += '<span class="peca-estado '+(isAlerta?'pe-def':'pe-ok')+'">'+(isAlerta?'⚠️ Com defeito':'✅ Perfeito estado')+'</span>';
     html += '<div class="peca-loc">'+(SLOC[locDisplay(p.loc)]||'🏪')+' '+locDisplay(p.loc)+(p.composicao?' · '+p.composicao:'')+'</div>';
     html += '<div class="peca-alug">🔁 '+(p.loc_count||0)+'× alugado</div>';
@@ -689,6 +716,7 @@ function abrirMP(id) {
   document.getElementById('mp-cor').value = p.cor||'';
   document.getElementById('mp-loc').value = locDisplay(p.loc) || 'Na loja';
   document.getElementById('mp-composicao').value = p.composicao || '';
+  document.getElementById('mp-preco').value = p.preco || '';
   document.getElementById('mp-estado').value = p.estado||'ok';
   document.getElementById('mp-obs').value = p.obs||'';
   var prev = document.getElementById('mp-foto-prev');
@@ -701,7 +729,7 @@ async function salvarP() {
   var cod = document.getElementById('mp-cod').value.trim();
   if (!cod) { toast('⚠️ Informe o código'); return; }
   var prev = document.getElementById('mp-foto-prev');
-  var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, composicao:document.getElementById('mp-composicao').value, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
+  var d = { cod:cod, tipo:document.getElementById('mp-tipo').value, cor:document.getElementById('mp-cor').value.trim(), loc:document.getElementById('mp-loc').value, composicao:document.getElementById('mp-composicao').value, preco:parseFloat(document.getElementById('mp-preco').value)||null, estado:document.getElementById('mp-estado').value, obs:document.getElementById('mp-obs').value.trim(), foto:prev._foto||null };
   var res;
   if (pEd) {
     res = await db.from('pecas').update(d).eq('id', pEd);
