@@ -114,6 +114,18 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 .ag-tipo{font-size:.65rem;font-weight:700;color:var(--rose-dk);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem}
 .ag-nome{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.05rem;color:var(--ink)}
 .ag-deb{font-size:.75rem;color:var(--muted);margin-top:.1rem}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem .3rem}
+.cal-nav{background:var(--rose-bg);color:var(--rose-dk);border:none;width:34px;height:34px;border-radius:50%;font-size:1.2rem;cursor:pointer;flex-shrink:0}
+.cal-mes{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--ink);text-transform:capitalize}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);padding:.2rem 1.1rem;font-size:.62rem;font-weight:700;color:var(--muted);text-align:center;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:.3rem .9rem 1.5rem}
+.cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;position:relative;font-size:.8rem;color:var(--ink)}
+.cal-cell.cal-muted{color:var(--border);cursor:default}
+.cal-cell.cal-has{background:var(--rose-bg);font-weight:700}
+.cal-cell.cal-today{outline:1.5px solid var(--rose)}
+.cal-dots{display:flex;gap:2px;margin-top:2px;height:5px}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--rose-dk)}
+.ag-upcoming-head{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 1.1rem;margin-bottom:.5rem}
 .peca-info{padding:.6rem}
 .peca-cod{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--rose-dk)}
 .peca-tipo{font-size:.65rem;color:var(--muted);margin-bottom:.3rem}
@@ -266,9 +278,15 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
         <div><div class="brand-name">Sonho de Debutante</div><div class="brand-sub">Agenda</div></div>
       </div>
     </div>
-    <div class="cont-wrap">
-      <div id="lista-agenda"></div>
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calMuda(-1)">‹</button>
+      <div class="cal-mes" id="ag-mes-label"></div>
+      <button class="cal-nav" onclick="calMuda(1)">›</button>
     </div>
+    <div class="cal-weekdays"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="ag-upcoming-head">📌 Próximos agendamentos</div>
+    <div class="cont-wrap" style="padding-top:0" id="lista-agenda"></div>
   </div>
 
   <div class="page" id="page-contratos">
@@ -442,6 +460,16 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 
 <div class="toast" id="toast"></div>
 
+<div class="ov" id="ov-dia" onclick="fecharOv('ov-dia',event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="m-title" id="dia-titulo">Dia</div>
+    <div id="dia-lista"></div>
+    <button class="btn-save" onclick="novoNoDia()">+ Adicionar agendamento</button>
+    <button class="btn-cancel" onclick="fecharOv('ov-dia')">Fechar</button>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)fecharLightbox()">
   <button class="lb-close" onclick="fecharLightbox()">✕</button>
   <img id="lb-img" src="" alt="foto"/>
@@ -457,6 +485,22 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans
 var SUPA_URL = 'https://yjxqxhzevfdgobnocltg.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqeHF4aHpldmZkZ29ibm9jbHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ4NjMsImV4cCI6MjA5NTIxMDg2M30.pDnLZc_yn4uAfEPPq6fWoJvT_YkoQtO8A2JUIM1PC80';
 var db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── voltar do celular fecha modal, não o app ──
+var histDepth = 0;
+function pushModalState(){ histDepth++; history.pushState({sdModal:histDepth}, '', ''); }
+function fecharTopoOverlay(){
+  var ids=['ov-dia','lightbox','ov-p','ov-v'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el && el.classList.contains('open')){ el.classList.remove('open'); return true; }
+  }
+  return false;
+}
+window.addEventListener('popstate', function(){
+  fecharTopoOverlay();
+  if(histDepth>0) histDepth--;
+});
 
 var V = [], P = [];
 var vFiltro = 'todos', vEd = null, pEd = null;
@@ -507,6 +551,7 @@ function updatePecaPreview(elId, cod){ var el=document.getElementById(elId); if(
 function irParaPecaFecharModal(id){
   document.getElementById('ov-v').classList.remove('open');
   document.getElementById('ov-p').classList.remove('open');
+  if(histDepth>0){ histDepth--; history.back(); }
   setTimeout(function(){ irParaPeca(id); }, 50);
 }
 function showVestidoPreview(){
@@ -655,6 +700,7 @@ function abrirMV(id) {
   toggleTriagemOutro();
   toggleFechado();
   calcFesta(); calcEnsaio();
+  pushModalState();
   document.getElementById('ov-v').classList.add('open');
 }
 
@@ -765,6 +811,7 @@ function abrirMP(id) {
   document.getElementById('mp-obs').value = p.obs||'';
   mpFotosTmp = Array.isArray(p.fotos) && p.fotos.length ? p.fotos.slice() : (p.foto ? [p.foto] : []);
   rFotoGrid();
+  pushModalState();
   document.getElementById('ov-p').classList.add('open');
 }
 
@@ -815,6 +862,7 @@ function verFotos(id){
   lbFotos = Array.isArray(p.fotos) && p.fotos.length ? p.fotos : (p.foto ? [p.foto] : []);
   if(!lbFotos.length){ toast('📷 Sem fotos ainda — toque em ✏️ pra adicionar'); return; }
   lbIdx=0; renderLightbox();
+  pushModalState();
   document.getElementById('lightbox').classList.add('open');
 }
 function renderLightbox(){
@@ -824,7 +872,10 @@ function renderLightbox(){
 }
 function lbNext(){ lbIdx=(lbIdx+1)%lbFotos.length; renderLightbox(); }
 function lbPrev(){ lbIdx=(lbIdx-1+lbFotos.length)%lbFotos.length; renderLightbox(); }
-function fecharLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+function fecharLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  if(histDepth>0){ histDepth--; history.back(); }
+}
 function toggleDatas(id){ document.getElementById('dp-'+id).classList.toggle('open'); }
 async function addData(id) {
   var inp=document.getElementById('nd-'+id); var d=inp.value; if(!d){toast('⚠️ Escolha uma data');return;}
@@ -920,27 +971,98 @@ function buildAgenda(){
   items.sort(function(a,b){ return a.data<b.data?-1:(a.data>b.data?1:0); });
   return items;
 }
+
+var agYear, agMonth, agSelDate = null;
+var MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+function fmtDateObj(dt){ return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); }
+function initAgendaCal(){ var t=new Date(); agYear=t.getFullYear(); agMonth=t.getMonth(); }
+function calMuda(delta){
+  agMonth+=delta;
+  if(agMonth<0){agMonth=11;agYear--;}
+  if(agMonth>11){agMonth=0;agYear++;}
+  rAgenda();
+}
+function agendaMap(items){
+  var map={};
+  for(var i=0;i<items.length;i++){ var d=items[i].data; if(!map[d]) map[d]=[]; map[d].push(items[i]); }
+  return map;
+}
 function rAgenda(){
-  var items = buildAgenda();
-  var l = document.getElementById('lista-agenda');
-  if (!items.length){ l.innerHTML='<div class="empty"><div class="empty-icon">📅</div><p>Nenhuma data agendada ainda.<br>Datas de festa, ensaio e provas aparecem aqui.</p></div>'; return; }
-  var html=''; var lastDate=null;
-  for (var i=0;i<items.length;i++){
-    var it=items[i];
-    if (it.data!==lastDate){ html+='<div class="ag-date-head">📆 '+fd(it.data)+'</div>'; lastDate=it.data; }
-    var chips='';
-    for (var j=0;j<it.cods.length;j++){
-      var cod=it.cods[j]; if(!cod) continue;
-      var peca=findPeca(cod);
-      chips+= peca ? '<span class="chip chip-link" onclick="event.stopPropagation();irParaPeca(\''+peca.id+'\')">🔗 #'+cod+(peca.cor?' — '+peca.cor:'')+'</span>' : '<span class="chip">👗 #'+cod+'</span>';
-    }
-    html+='<div class="ag-card" onclick="abrirMV(\''+it.vid+'\')"><div class="ag-tipo">'+it.tipo+'</div><div class="ag-nome">'+(it.nome||'—')+'</div>'+(it.deb?'<div class="ag-deb">👑 '+it.deb+'</div>':'')+(chips?'<div class="chips" style="margin-top:.4rem">'+chips+'</div>':'')+'</div>';
+  if(agYear===undefined) initAgendaCal();
+  var itemsAll = buildAgenda();
+  var map = agendaMap(itemsAll);
+
+  document.getElementById('ag-mes-label').textContent = MESES[agMonth]+' '+agYear;
+
+  var first = new Date(agYear, agMonth, 1);
+  var startWeekday = first.getDay();
+  var daysInMonth = new Date(agYear, agMonth+1, 0).getDate();
+  var daysInPrevMonth = new Date(agYear, agMonth, 0).getDate();
+  var todayStr = fmtDateObj(new Date());
+
+  var cellsHtml='';
+  for (var i=0;i<startWeekday;i++){
+    var dnum = daysInPrevMonth - startWeekday + 1 + i;
+    cellsHtml += '<div class="cal-cell cal-muted"><span class="cal-daynum">'+dnum+'</span></div>';
   }
-  l.innerHTML=html;
+  for (var d=1; d<=daysInMonth; d++){
+    var dateStr = agYear+'-'+pad2(agMonth+1)+'-'+pad2(d);
+    var has = map[dateStr] ? map[dateStr].length : 0;
+    var isToday = dateStr===todayStr;
+    var dotsHtml = has ? ('<div class="cal-dot"></div>'+(has>1?'<div class="cal-dot"></div>':'')) : '';
+    cellsHtml += '<div class="cal-cell'+(isToday?' cal-today':'')+(has?' cal-has':'')+'" onclick="abrirDia(\''+dateStr+'\')"><span class="cal-daynum">'+d+'</span><div class="cal-dots">'+dotsHtml+'</div></div>';
+  }
+  var totalCells = startWeekday + daysInMonth;
+  var trailing = (7 - (totalCells % 7)) % 7;
+  for (var i=1;i<=trailing;i++){
+    cellsHtml += '<div class="cal-cell cal-muted"><span class="cal-daynum">'+i+'</span></div>';
+  }
+  document.getElementById('cal-grid').innerHTML = cellsHtml;
+
+  // lista de próximos agendamentos (a partir de hoje)
+  var upcoming = itemsAll.filter(function(it){ return it.data >= todayStr; }).slice(0, 15);
+  var l = document.getElementById('lista-agenda');
+  if (!upcoming.length){ l.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Nenhuma data agendada ainda.<br>Toque num dia no calendário pra adicionar.</p></div>'; return; }
+  var html=''; var lastDate=null;
+  for (var i=0;i<upcoming.length;i++){
+    var it=upcoming[i];
+    if (it.data!==lastDate){ html+='<div class="ag-date-head">📆 '+fd(it.data)+'</div>'; lastDate=it.data; }
+    html += agCardHtml(it);
+  }
+  l.innerHTML = html;
+}
+function agCardHtml(it){
+  var chips='';
+  for (var j=0;j<it.cods.length;j++){
+    var cod=it.cods[j]; if(!cod) continue;
+    var peca=findPeca(cod);
+    chips+= peca ? '<span class="chip chip-link" onclick="event.stopPropagation();irParaPeca(\''+peca.id+'\')">🔗 #'+cod+(peca.cor?' — '+peca.cor:'')+'</span>' : '<span class="chip">👗 #'+cod+'</span>';
+  }
+  return '<div class="ag-card" onclick="abrirMV(\''+it.vid+'\')"><div class="ag-tipo">'+it.tipo+'</div><div class="ag-nome">'+(it.nome||'—')+'</div>'+(it.deb?'<div class="ag-deb">👑 '+it.deb+'</div>':'')+(chips?'<div class="chips" style="margin-top:.4rem">'+chips+'</div>':'')+'</div>';
+}
+function abrirDia(dateStr){
+  agSelDate = dateStr;
+  document.getElementById('dia-titulo').textContent = fd(dateStr);
+  var items = buildAgenda().filter(function(it){ return it.data===dateStr; });
+  var l = document.getElementById('dia-lista');
+  l.innerHTML = items.length
+    ? items.map(function(it){ return agCardHtml(it).replace('onclick="abrirMV(', 'onclick="fecharOv(\'ov-dia\');abrirMV('); }).join('')
+    : '<div style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Nenhum agendamento nesse dia ainda.</div>';
+  pushModalState(); document.getElementById('ov-dia').classList.add('open');
+}
+function novoNoDia(){
+  var d = agSelDate;
+  fecharOv('ov-dia');
+  setTimeout(function(){ abrirMV(); document.getElementById('mv-data').value = d; }, 180);
 }
 
 // ── UTILS ──
-function fecharOv(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('open');}
+function fecharOv(id,e){
+  if(e&&e.target!==document.getElementById(id))return;
+  document.getElementById(id).classList.remove('open');
+  if(histDepth>0){ histDepth--; history.back(); }
+}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');var dur=msg.indexOf('⚠️')===0?5000:2600;clearTimeout(t._to);t._to=setTimeout(function(){t.classList.remove('show');},dur);}
 function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function fts(ts){return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});}
